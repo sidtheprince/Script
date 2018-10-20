@@ -1,0 +1,121 @@
+
+-- ALL---
+arcana = Magic.new()
+hack = Magic.new() -- push sword towards player
+slash = Magic.new() -- slice and dice
+
+--[[ FIRE ]]---------------------
+fireball = Magic.new("Fire Ball", FIRE, 1, MANA_USAGE, COOL_DOWN, DAMAGE)
+--
+-- fire_ball_scroll.effect is the fire_ball which will be activated
+fireball.cool_down = 10
+
+flaming_torch = Magic.new()
+
+inferno = Magic.new() 
+
+flame_beast = Magic.new() -- ?? legendary beast
+open_furnace = Magic.new()
+
+solar_blade = Magic.new()
+
+--[[ WATER ]]---------------------
+
+ice_shard = Magic.new("Ice Shard", WATER, 1, MANA_USAGE, COOL_DOWN, DAMAGE)
+--ice_shard_scroll = Item.new("Ice Shard Scroll", SCROLL, "??", 1, ice_shard, SPELL_PRICE, 0)
+
+frostbite = Magic.new() 
+hydro_blast = Magic.new()
+
+hail_storm = Magic.new()
+
+wave_caller = Magic.new() -- or tide
+
+--[[ EARTH ]]---------------------
+
+stone_fist = Magic.new()
+crush = Magic.new()
+
+counter_bash = Magic.new()
+
+golem_soulshield = Magic.new()
+earth_shaker = Magic.new()
+
+
+--[[ AIR ]]-----------------------
+-- MOVEMENT SPEED
+
+swift = Magic.new()
+-- OFFENSE
+blade_twister = Magic.new()
+whirl_wind = Magic.new()
+god_hand = Magic.new()
+
+storm = Magic.new()
+air_vacuum = Magic.new()
+-- DEFENSE + BUFF
+power_surge = Magic.new()
+
+-- TRANSPORTATION
+cloud_away = Magic.new()
+
+
+--[[ NATURE ]]--------------------
+-- MANIPULATION
+charm = Magic.new()
+
+-- OFFENSE 
+ tendril = Magic.new()
+ 
+ leaf_blade = Magic.new()
+ 
+ -- DEFENSE + BUFF
+ garden_heart = Magic.new() 
+ cocoon = Magic.new()
+ 
+-- ANIMAL MORPHS
+bear_shift = Magic.new()
+wolf_shift = Magic.new()
+turtle_shift = Magic.new()
+dragon_shift = Magic.new()
+
+
+--[[ MIND ]]--
+telekenesis = Magic.new()
+confusion = Magic.new()
+
+forcefield = Magic.new()
+--[[ BLOOD ]]--
+drain = Magic.new()
+blood_sphere = Magic.new()
+
+
+--[[ DARK ]]--
+ghost = Magic.new()
+nightmare = Magic.new()
+shadow_dash = Magic.new()
+clone = Magic.new()
+
+skeleton_cage = Magic.new()
+possession = Magic.new()
+
+chain_of_souls = Magic.new()
+summoning_vortex = Magic.new()
+
+venom_pump = Magic.new()
+curse = Magic.new()
+pick_pocket = Magic.new()
+midnight_crow = Magic.new()
+--[[ LIFE ]]--
+-- SUPPORT + DEFENSE
+heal = Magic.new()
+revive = Magic.new()
+
+halo_sphere = Magic.new()
+aurora_wing = Magic.new()
+
+sacred_balm = Magic.new()
+--OFFENSE
+wish = Magic.new()
+bless = Magic.new()
+sparkle_blow = Magic.new()

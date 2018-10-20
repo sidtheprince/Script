@@ -1,0 +1,1 @@
+star = Item.new("Star", GENERAL, 0,  "Used to raise up a player's Rank Level.", 0)

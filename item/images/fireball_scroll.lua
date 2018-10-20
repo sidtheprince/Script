@@ -1,0 +1,1 @@
+fireball_scroll = Item.new("Fire Ball Scroll", SCROLL, 0, "Deals powerful damage from ball of fire.", fireball)
