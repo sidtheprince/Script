@@ -37,11 +37,11 @@ Player_mt =
 ------------------
 function Player:new(name, level)
     local player
-    if dokun then 
-	    player = Sprite:new() 
-	else -- create table with a sprite userdata
-        player = {}
-    end
+if dokun then 
+	player = Sprite:new()  -- create table with a sprite userdata
+else
+    player = {}
+end
 	----------------
 	if self == Player then
         player.name = name
@@ -132,21 +132,19 @@ function Player:reflect(x, y)
 	end
 end
 ------------------
-function Player:fight(target) -- attack player, monster, or npc
+function Player:hit() -- attack player, monster, or npc
     local damage 
-	if self:is_dead() then
-	    print("You are dead")
-		return
+	local target = self:get_target()
+	
+	if not target then return end --no target to hit, exit function	
+	if self:is_dead() then print("You are dead") return --if self is dead, exit function
 	end
 	if not self:is_dead() then
-	    if target:is_dead() then
-		    print(target:get_name().." is dead") 
-			return
-		end
-	end
+	    if target:is_dead() then print(target:get_name().." is dead") return end
+	end --if target is dead
     if not self:is_dead() and not target:is_dead() then
         -- calc damage
-        damage = self:get_attack() - target:get_defense()    
+        damage = self:get_attack() - target:get_defense()    -- Player.get_attack is the same as Player.get_power
 		if damage < 0 then
 		    -- zero is enough
 		    damage = 1
@@ -366,8 +364,9 @@ function Player:set_spawn_point(x, y, z, area)
     self.spawn_point_z = z
 end
 ------------------
-function Player:set_target(target) 
+function Player:set_target(target)
     self.target = target 
+	-- follow target on set
 end
 ------------------
 function Player:set_quest(quest)
@@ -485,17 +484,13 @@ function Player:get_target()
 end
 ------------------
 function Player:get_equipment(index) 
-    if not self.equipment then 
-	    self.equipment = {} 
-	end 
-	return self.equipment[index] 
+    if not self.equipment then self.equipment = {} end 
+	return self.equipment[index]
 end
 ------------------
 function Player:get_weapon() 
-    if not self.equipment then
-	   self.equipment = {}
-	end
-	return self.equipment[ Weapon ]
+    if not self.equipment then self.equipment = {} end
+	return self.equipment[ WEAPON ] ----------------------------------------------------------
 end
 ------------------
 Player.get_main_hand = Player.get_weapon
@@ -680,40 +675,39 @@ function Player:get_drop_from_monster(monster)
 end
 ------------------
 function Player:get_position()
-    if (dokun) then
-	    return Sprite.get_position(self)
-	end
+if dokun then
+	return Sprite.get_position(self)
+end
+    return 0, 0
 end
 ------------------
 -- BOOLEAN
 ------------------
 function Player:is_player() 
     -- Is it a table?
-    if type(self) ~= "table" then
-	    return false
+    if type(self) ~= "table" then return false
 	end
 	-- Original?
-    if getmetatable(self) == Player_mt then 
-	    return true 
+    if getmetatable(self) == Player_mt then return true 
 	end
 	-- copy
 	local g = _G
-	if not dokun then
-	    for _, player in pairs(g) do
-	        if getmetatable(player) == Player_mt then
-                if getmetatable(self) == player.mt then
-		            return true
-		        end
-            end		
-	    end
+if not dokun then
+	for _, player in pairs(g) do
+	    if getmetatable(player) == Player_mt then
+            if getmetatable(self) == player.mt then
+		        return true
+		    end
+        end		
 	end
-	if dokun then
-	    for _ = 1, Player.factory:get_size() do
-	        if self == Player.factory:get_object(_).mt then
-			    return true
-			end
-	    end
+end
+if dokun then
+	for _ = 1, Player.factory:get_size() do
+	    if self == Player.factory:get_object(_).mt then
+			return true
+		end
 	end
+end
     return false 
 end
 ------------------
@@ -728,14 +722,15 @@ function Player:is_resting()
 end
 ------------------
 function Player:is_dead()
-    if self:get_health() <= 0 then 
-        self:set_health(0)   
-	    return true
+    if self:get_health() <= 0 then self:set_health(0) return true
     end 
     return false
 end
 ------------------
 function Player:in_combat() 
+    if self:is_dead() then return false end -- cannot be dead and in_combat at the same time
+	if self:get_target():is_dead() then return false end --cannot be in_combat with a dead opponent
+	
     if is_monster(self:get_target()) then
 	    if self:get_target():get_target() == self then
 		    return true
@@ -786,6 +781,10 @@ function Player:is_equipped(item)
 	    return true
 	end	
 	return false
+end
+------------------
+function Player:has_target()
+    return self.target ~= nil
 end
 ------------------
 function Player:has_weapon()
@@ -862,11 +861,12 @@ function Player:equip(item)
 			self:set_power( self:get_power() - self.equipment[ WEAPON ]:get_effect() )
 			print( "-"..self.equipment[ WEAPON ]:get_effect().." power" )
 		    -- swap weapons
-		    Bag.slots[ weapon:get_slot() ] = self.equipment[ WEAPON ]
-		    self.equipment[ WEAPON ] = weapon
+		    Bag.slots[ weapon:get_slot() ] = self.equipment[ WEAPON ] -- bag slot is placed with old(already-equipped) weapon
+		    self.equipment[ WEAPON ] = weapon  -- new weapon is inserted into the weapon_equip_slot 
 			-- add effect from new weapon
 			self:set_power( self:get_power() + self.equipment[ WEAPON ]:get_effect() )
 			print( "+"..self.equipment[ WEAPON ]:get_effect().." power" )
+			-- dokun-related stuff
 		end		
 		-- If [weapon] slot is empty 
 		if not self.equipment[ WEAPON ] then
@@ -894,6 +894,10 @@ function Player:unequip(item)
 	    print("You are dead")
 	    return 
 	end
+	-- Is this a valid item? -- added 10-25-2018
+	if not is_item(item) then print("Not a valid item") return end
+	-- make sure there is space in bag first -- added 10-25-2018
+	if Bag:is_full() then print("Cannot unequip "..item:get_name()..". Your bag is full") return end
 	-- Is the item in the slot?
     for slot, equip_ in pairs(self.equipment) do
 		if equip_ == item then

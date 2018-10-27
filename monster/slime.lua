@@ -58,6 +58,12 @@ end
 
 -- on defeating a slime
 function slime:on_kill(player)
+if dokun then
+    -- hide health_bar
+	if self.health_bar then 
+	    if self.health_bar:is_visible() then self.health_bar:hide() end
+	end
+end	
 	-- check for quests in player.quest
     self:check(player)
     -- drop item from self.item_drop_list
@@ -68,48 +74,16 @@ end
 
 
 -- on drawing a slime
-function slime:on_draw( player )		
-    -- IF MONSTER IS AGGRESSIVE
-	if self:is_aggressive() then 
-	    -- detect a nearby enemy at distance of 10
-        if self:detect(player, 10) then
-	        -- set enemy as target (target found)
-		    self:set_target( player )
-			if not self:in_combat() then
-			    -- follow enemy while not in combat or not being attacked
-		        self:follow( player );
-			end
-	    else
-	        -- no target found
-	        self:set_target(nil)
-		end
-		
-		--if distance is 1 or less from enemy (monster is close enough to the enemy)
-	    if self:detect( player, 1) then
-		-- if monster's target is enemy
-		-- and engage in battle with enemy
-		    if self:get_target() == player then 
-			    self:fight( player ) 
-		    end
-        end			
+function slime:on_draw()	
+    if not self:is_dead() then
+    --[[
+    if player:get_target() == self then -- if player attacks first
+        -- set player as new target and follow target
+		self:set_target( player )       --print("You are now in combat with Slime")
+		self:follow()                   -- slime will follow its target 
+		if collide then self:hit( player ) end-- slime can only attack when close enough to attack player (at a distance of 1)
 	end
-if dokun then
-    -- update slime healthbar
-    slime.width, slime.height = Sprite.get_texture (slime):get_size() -- 24,20
-    slime.x, slime.y          = Sprite.get_position(slime)
-	slime.health_bar:set_size(slime.width, 5)
-    slime.health_bar:set_position(slime.x, slime.height + slime.y) -- update slimehbar position in loop
-	slime.health_bar:set_range(slime:get_health(), slime:get_maximum_health())
-	slime.health_bar:set_value(slime:get_health()) -- update slimehbar value in loop
-	slime.health_bar:draw() -- draw slimehbar
-end	
-	--------------------------
-	--------------------------
-	-- IF MONSTER IS ALIVE
-	--[[
-	if not self:is_dead() then
-if dokun then
-	    Sprite.draw(self) -- call in loop in order to update drawing
-end	
-	end ]]--
+	if (distance_from_target >= 200) then player:set_target(nil) self:set_target(nil) end --print("Target lost")--print("No target found")  -- stop chasing player if he runs to a distance of 200 or more	-- lose target when player runs or is at a certain distance-- distance is more than or equal to specified distance(300)
+    ]]--
+	end
 end

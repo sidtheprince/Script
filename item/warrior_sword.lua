@@ -10,5 +10,5 @@ end
 warrior_sword:load("item/warrior_sword.png")
 
 function warrior_sword:on_use(user)
-    user:equip(self)
+    if is_player(user) then user:equip(self) end
 end

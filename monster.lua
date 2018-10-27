@@ -86,13 +86,16 @@ function Monster:new(name, level)
         else
             new_monster = {}
         end
+if dokun then
+	    Monster.factory:store(new_monster) -- store even clone mobs in factory database
+end
         setmetatable(new_monster, monster.mt)
         return new_monster
     end
 	--
-	if dokun then
-	    Monster.factory:store(monster)
-    end
+if dokun then
+	Monster.factory:store(monster)
+end
 	-- set monster parent
     setmetatable(monster, Monster_mt)
     return monster 
@@ -116,40 +119,35 @@ end
 end
 --------------
 -- monster chases after its enemy
-function Monster:follow(target)
-	vel = 0.2
-    if dokun then
-		local self_x
-		local self_y 
-		self_x, self_y = self:get_position()
-		
-		local target_x
-        local target_y 
-		target_x, target_y = target:get_position()
-
-		
-		if self_x >= target_x then -- 600 = end
-		    right = false
-			left = true
-		end
-		if self_x <= target_x then -- 200 = start
-		    right = true
-			left = false
-		end --
-		if self_y >= target_y then -- 600 = end
-		    up = false
-			down = true
-		end
-		if self_y <= target_y then -- 200 = start
-		    up = true
-			down = false
-		end	
-        if right and up then self:set_position(self_x + vel, self_y + vel)
-        elseif right and down then self:set_position(self_x + vel, self_y - vel)
-		elseif left and up then self:set_position(self_x - vel, self_y + vel)
-		elseif left and down then self:set_position(self_x - vel, self_y - vel)
-        end		
+function Monster:follow() -- monster must have a "target" to follow
+    local target = self:get_target()
+	if not is_player(target) then print("Cannot follow target : Invalid target.") return end
+	local vel = 0.09
+	local self_x, self_y     = self:get_position  ()	
+	local target_x, target_y = target:get_position()
+    local up, down, left, right
+	
+	if self_x >= target_x then -- 600 = end
+		right = false
+		left = true
 	end
+	if self_x <= target_x then -- 200 = start
+		right = true
+		left = false
+	end
+	if self_y >= target_y then -- 600 = end
+		up = false
+		down = true
+	end
+	if self_y <= target_y then -- 200 = start
+		up = true
+		down = false
+	end	
+    if right and up then self:set_position(self_x + vel, self_y + vel)
+    elseif right and down then self:set_position(self_x + vel, self_y - vel)
+	elseif left and up then self:set_position(self_x - vel, self_y + vel)
+	elseif left and down then self:set_position(self_x - vel, self_y - vel)
+    end
 end
 --------------
 -- monster makes a sound or speaks
@@ -283,6 +281,21 @@ function Monster:check(player) -- checks if a quest in the player's quest log is
 	end
 end
 --------------
+function Monster:find_nearest_player()
+if dokun then
+    local player
+    for p = 0, Player.factory:get_size() do
+	    player = Player.factory:get_object(p)
+		if player then
+		    if self:detect(player, 150) then 
+				return player--self:set_target(player)
+			end
+		end
+	end
+end
+    return nil
+end
+--------------
 -- respawn a monster, setting it to full health
 function Monster:respawn()
     if self:is_dead() then
@@ -305,13 +318,14 @@ end
 Monster.regen = Monster.regenerate
 --------------
  -- at low health use special move
- -- monster fights an opponent 
-function Monster:fight(target)
+ -- monster attacks an opponent 
+function Monster:hit(target)
    local damage 
 	if self:is_dead() then
 	    print(self:get_name().." is dead")
 		return
 	end
+	if not is_player(target) then return end --return if target is not a player
 	if not self:is_dead() then
 	    if target:is_dead() then
 		    print("You are dead") 
@@ -321,22 +335,22 @@ function Monster:fight(target)
     if not self:is_dead() and not target:is_dead() then
         -- calc damage
         damage = self:get_attack() - target:get_defense()    
-		if damage < 0 then
-		    -- zero is enough
-		    damage = 1
-		end
+		if damage < 0 then damage = 0 print(self:get_name().."'s attack missed") end
         -- deal damage
         target:set_health( target:get_health() - damage )
+		-- once an aggressive monster or boss deals damage to a player, then player's target is set to monster
+		target:set_target(self)
         -- show message
         print(self:get_name().." attacks "..target:get_name().." +"..damage)
-		-- adjust health
-		if self:get_health() < 0 then
-		    self:set_health(0)
+		print("Siddy HP: "..target:get_health())
+		-- adjust health (if less than 0)
+		if target:get_health() <= 0 then
+		    target:set_health(0)
 			print("You are killed by "..self:get_name())
 	        return
 		end		
-        if target:get_health() < 0 then 
-		    target:set_health(0) 
+        if self:get_health() <= 0 then 
+		    self:set_health(0) 
 			print("You have slain "..self:get_name())
 			return
 		end
@@ -624,9 +638,9 @@ function Monster:get_skill(index)
 end
 --------------
 function Monster:get_position() 
-    if (dokun) then
-	    return Sprite.get_position(self)
-	end
+if dokun then
+	return Sprite.get_position(self)
+end
     return self.x, self.y
 end
 --------------
@@ -702,7 +716,7 @@ function Monster:is_monster()
 	end
     if getmetatable(self) == Monster_mt then 
 	    return true 
-    end 
+    end--works for monsters that are not copies 
 if not dokun then
 	local g = _G
     for _, monster in pairs(g) do
@@ -714,8 +728,10 @@ if not dokun then
 	end
 end
 if dokun then
+    local monster
 	for i = 1, Monster.factory:get_size() do
-		if getmetatable(self) == Monster.factory:get_object(i).mt then
+	    monster = Monster.factory:get_object(i)
+		if getmetatable(self) == monster.mt then
 			return true
 		end
 	end
@@ -746,21 +762,24 @@ end
 --------------
 Monster.is_aggro = Monster.is_aggressive
 --------------
-function Monster:in_combat()
+function Monster:in_combat_with( enemy ) -- checks if monster is currently in combat with an enemy (player or npc)
     --[NOTE]: Monster can lose target when its target escapes or runs to a far distance
-    -- monster has a target that is either player or NPC
-    if self:has_target() then
-	    if self:get_target():get_target() == self then
-	        return true
-		end
+    --[NOTE]: Monster can have a target that is either player or NPC
+	local target = self:get_target()
+	--if not target then return false end -- return false if no target is set
+    if self:is_dead() then self:set_target(nil) return false end -- monster cannot be dead and be in_combat at the same time WTF xD
+	if is_player(target) then if target:is_dead() then target:set_target(nil) return false end end --cannot be in_combat with a dead target
+    -- Aggressive monsters automatically attack when a player is near them
+    if self:is_aggressive() then if self:detect( enemy, 150 ) then return true end end--(combat/cast_distance=150)
+    -- When player targets a non-aggressive monster, Monster.in_combat is true
+    if not self:is_aggressive() then  -- player could be casting a spell from afar so I made the distance 150 (combat/cast_distance=150)
+	    if self:detect( enemy, 150 ) then if enemy:get_target() == self and self:get_target() == enemy then return true end end-- if player attacks first
 	end
 	return false
 end
 --------------
 function Monster:has_target()
-    if is_player(self.target) or is_npc(self.target) then
-	    return true
-	end
+    if is_player(self.target) or is_npc(self.target) then return true end
 	return false
 end
 --------------
@@ -782,56 +801,62 @@ function Monster:collision_event(player)
 		end
 	end
 end
-function Monster.draw_event(player) -- draw all monsters
-    for _, monster in pairs(_G) do
-	    if type(monster) == "table" then
-	 	    if getmetatable(monster) == Monster_mt  then -- parent object
-			    -- monster is not dead	
-			    if not monster:is_dead() then
-					-- animate the monster
-					monster:animate()				
-				    -- draw the monster
-				    monster:draw()
-				end
-			end
-		        if getmetatable(monster) == monster.mt then -- child object
-				    -- monster is not dead	
-	                if not monster:is_dead() then
-					-- animate the monster
-					    monster:animate()
-                    -- draw the monster
-                        monster:draw()
-                    end						
-				end		
-		end
-	end
-end
 
 function Monster.boss_event()
 end
 --------------
 function Monster:draw_all()
-if dokun then
+if dokun then--this acts as a #define like in C/C++
     local monster
     for i = 0, Monster.factory:get_size() do
 	    monster = Monster.factory:get_object(i)
-		if monster then
-			monster:draw()
-		end
-	end
-end
-end
---------------
-function monster_event_handler()
-    local g = _G
-	for _, monster in pairs(g) do
-	    if is_monster(monster) then
-		    if not monster:is_dead() then
+		if is_monster(monster) then--if monster is not nil
+		    if not monster:is_dead() then--if monster is not dead
+			    monster.width, monster.height = Sprite.get_texture (monster):get_size() -- 24,20
+                monster.x, monster.y          = Sprite.get_position(monster)
+			    -- animate the monster monster:animate()
+                -- update monster healthbar
+	            monster.health_bar:set_size(monster.width, 5)
+                monster.health_bar:set_position(monster.x, monster.height + monster.y) -- update slimehbar position in loop
+	            monster.health_bar:set_range(0, monster:get_maximum_health())
+	            monster.health_bar:set_value(monster:get_health()) -- update slimehbar value in loop
+	            monster.health_bar:draw() -- draw slimehbar
+			    -- draw monster
 			    monster:draw()
 			end
 		end
 	end
 end
+end
+				----------------------------
+				--[[
+				-- target
+				target  = player--monster:get_target()
+	            if target then 
+				    target.x, target.y = target:get_position()
+				    target.width, target.height = Sprite.get_size(player)
+	                -- calculate distance from player
+	                local distance_from_target = math.sqrt(math.pow(monster.x - target.x, 2) + math.pow(monster.y - target.y, 2))
+                    -- check for any collision with target
+	                if((monster.x < target.x + target.width) and (target.x < monster.x) and (monster.y < target.y + target.height) and (target.y < monster.y)) then
+	                    collide = true
+	                end
+					if Keyboard:is_pressed(KEY_T) then 
+	                    if distance_from_target > 150 then print("Target is too far") return end --target is nil when you are 150 units too far
+	                    target:set_target(monster) print("Player target set to "..monster:get_name()) -- player target is slime	
+	                end --TEMPORARY
+				
+                    if not monster:is_aggressive() then
+                        if target:get_target() == monster then -- if player attacks first
+                            -- set player as new target and follow target
+		                    monster:set_target( target )       --print("You are now in combat with Slime")
+		                    monster:follow()                   -- slime will follow its target 
+		                    if collide then monster:hit( target ) end-- slime can only attack when close enough to attack player (at a distance of 1)
+	                    end
+	                    if (distance_from_target >= 200) then monster:set_target(nil) monster:set_target(nil) end --print("Target lost")--print("No target found")  -- stop chasing player if he runs to a distance of 200 or more	-- lose target when player runs or is at a certain distance-- distance is more than or equal to specified distance(300)
+					end		
+				end ]]--
+				----------------------------- 
 -----------------------------------
 -- [NOTE]: Monsters have unlimited mana or do not need mana.
 -----------------------------------

@@ -47,7 +47,12 @@ function Magic:new(name, type, require, mana, cool_down, effect)
     return spell
 end
 ----------------
-function Magic:cast(player, target)end
+function Magic:cast(player, target)
+    --if Keyboard:is_pressed(KEY_T) then 
+	    --if distance_from_target > 150 then print("Target is too far") return end --target is nil when you are 150 units too far
+	    --player:set_target(self) print("Fire ball has been cast") print("Player target set to "..self:get_name()) 
+	--end --TEMPORARY-- player target is slime
+end
 ----------------
 function Magic:wait() end -- wait for spell to cast
 ----------------

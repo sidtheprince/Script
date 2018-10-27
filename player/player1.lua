@@ -2,10 +2,10 @@
 player = Player:new("Siddy")
 player:set_level(1)
 player:set_exp(0)
-player:set_maximum_health(100)
-player:set_maximum_mana(100)
-player:set_health(100) -- initial hp
-player:set_mana(100) -- initial mp
+player:set_maximum_health(10000)
+player:set_maximum_mana(1000)
+player:set_health(player:get_maximum_health()) -- initial hp
+player:set_mana(player:get_maximum_mana()) -- initial mp
 player:set_power(5) -- player.power
 player:set_magic(0)
 player:set_defense(10)
@@ -71,7 +71,8 @@ if dokun then
 	end 
 	]]--
 	-----------------------------------
-	    local speed = 5
+	if window:is_focused() then
+	    local speed = 2
 	    if Keyboard:is_pressed("up", 0) then
 	        Sprite.translate(self, 0, -speed)
 	    end
@@ -84,6 +85,7 @@ if dokun then
 	    if Keyboard:is_pressed("right", 0) then
 	        Sprite.translate(self, speed, 0)
 	    end	
+	end	
 		-- check experience points
 		self:level_up()
 		-- draw the player
@@ -102,6 +104,15 @@ if dokun then
 		--player_dead = Texture:new("player/naked_dead.png")
 		--Sprite.set_texture(player, player_dead)		
 	end 
+	----
+	if is_monster(player:get_target()) then
+	   -- follow target
+	   
+	end
+	
+    player:on_basic_attack()
+	player:on_item_use()
+	player:on_item_equipped()
 		-- if player dies, set visiblity off
 	player:on_dead()
 	-- if player dies, restore health, set respawn point, and set visible
@@ -114,7 +125,7 @@ if dokun then
     -- if player is visible and is dead
     if Sprite.is_visible(self) then
 	if self:is_dead() then
-	    Sprite.set_texture( player, player_dead )
+	    Sprite.set_texture( self, player_dead )
 		print("You are dead")
 			-- lose some exp (1%)
             local current_exp = self:get_exp()
@@ -132,11 +143,99 @@ if dokun then
 end	
 end
 
+function player:on_basic_attack()
+    if player:has_target() then player:hit() end --player will attack its target with weapon hitpower
+end
+function player:on_item_equipped()
+    local item = self:get_weapon() -- equipment
+	--[[if not self.equipment then self.equipment = {} end
+	for i = 0, #self.equipment do
+	    item = self.get_equipment(i)
+		print(item)
+	end]]--
+	if not item then return end -- if nil exit this function
+	-- if an item is equipped by a player make sure its positioned on the player's body
+	if (string.find(item:get_type(), nocase("Equipment")) and player:is_equipped(item)) then
+	    -- if item is a weapon
+		if string.find(item:get_subtype(), nocase("Weapon")) or string.find( item:get_subtype(), nocase("Smasher") ) or string.find(item:get_subtype(), nocase("Blaster")) or string.find(item:get_subtype(), nocase("Explosive")) then
+if dokun then		    
+            local player_x, player_y            = Sprite.get_position(self)
+			local player_width, player_height   = Sprite.get_size(self)
+			Sprite.set_position(item, player_x-10, player_y+10)
+end			
+		end
+	end
+end
+
+function player:on_item_use() 
+	-- USE ITEMS 0-9
+	if Keyboard:is_pressed(KEY_1) then
+	    local item = Bag:get_item_in_slot(1)
+		if not item then return end
+	    if is_item(item) then item:use(self) end
+	    --Bag:open()
+	end
+	if Keyboard:is_pressed(KEY_2) then
+	    local item = Bag:get_item_in_slot(2)
+		if not item then return end
+	    if is_item(item) then item:use(self) end
+	    --Bag:open()
+	end
+	if Keyboard:is_pressed(KEY_3) then
+	    local item = Bag:get_item_in_slot(3)
+		if not item then return end
+	    if is_item(item) then item:use(self) end
+	    --Bag:open()
+	end
+	if Keyboard:is_pressed(KEY_4) then
+	    local item = Bag:get_item_in_slot(4)
+		if not item then return end
+	    if is_item(item) then item:use(self) end
+	    --Bag:open()
+	end
+	if Keyboard:is_pressed(KEY_5) then
+	    local item = Bag:get_item_in_slot(5)
+		if not item then return end
+	    if is_item(item) then item:use(self) end
+	    --Bag:open()
+	end
+	if Keyboard:is_pressed(KEY_6) then
+	    local item = Bag:get_item_in_slot(6)
+		if not item then return end
+	    if is_item(item) then item:use(self) end
+	    --Bag:open()
+	end
+	if Keyboard:is_pressed(KEY_7) then
+	    local item = Bag:get_item_in_slot(7)
+		if not item then return end
+	    if is_item(item) then item:use(self) end
+	    --Bag:open()
+	end
+	if Keyboard:is_pressed(KEY_8) then
+	    local item = Bag:get_item_in_slot(8)
+		if not item then return end
+	    item:use(self)
+	    --Bag:open()
+	end
+	if Keyboard:is_pressed(KEY_9) then
+	    local item = Bag:get_item_in_slot(9)
+		if not item then return end
+	    item:use(self)
+	    --Bag:open()
+	end
+	if Keyboard:is_pressed(KEY_0) then
+	    local item = Bag:get_item_in_slot(10)
+		if not item then return end
+	    item:use(self)
+	    --Bag:open()
+	end
+end
+
 function player:on_respawn()
 if dokun then
     if not Sprite:is_visible(self) then
         if self:is_dead() then
-            sleep(2)
+            sleep(0.5)
 			Sprite.set_position(self, 0, 0)
 			self:set_health(self:get_maximum_health())
 			Sprite.set_texture(self, player_alive)

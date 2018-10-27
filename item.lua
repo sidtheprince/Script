@@ -71,6 +71,9 @@ function Item:new(name, type, require, description, effect)
         else			
 		    new_item = {}
         end
+if dokun then
+	    Item.factory:store(new_item) -- store even clone  in factory database
+end		
         setmetatable(new_item, item.mt)
 		-- non-stackable (set quantity to 0)  equipments have their own unique quantity since they are non-stackable items
 		if not new_item:is_stackable() then
@@ -138,9 +141,8 @@ end
 -- use an item that has been obtained
 function Item:use(user) 
    -- If item is a string (must be item name)
-    if type(self) == "string" then 
-	    self = get_item_by_name(self)
-    end
+    if type(self) == "string" then self = get_item_by_name(self)
+    end -- Item.use("Potion", player)
   -- call user implemented on_use function
     self:on_use(user)
 end
@@ -166,11 +168,11 @@ function Item:swap_with_another_item(item)
 end
 ----------------
 function Item:equip(user) 
-    user:equip(self)
+    if is_player(user) then user:equip(self) end
 end -- Equip an item from your bag.
 ----------------
 function Item:unequip(user)
-    user:unequip(self)
+    if is_player(user) then user:unequip(self) end
 end
 ----------------
 function Item:toss(player, bag, amount)
@@ -635,7 +637,7 @@ function Item:is_tradeable()
     return false 
 end
 ----------------
-function Item:is_obtained() -- new!
+function Item:is_obtained() -- new! NOTE: just because an item is in a bag does not mean its mean obtained; obtained is a different story as it applies to the physical item in its "sprite form"
     if type(self.obtained) == "boolean" then
 	    return self.obtained
 	end
@@ -684,9 +686,9 @@ if dokun then
 			if Sprite.collide(player, item) and not item:is_obtained() then 
 			    item:set_obtained(item:obtain()) 
 			end
-			-- draw items (if not obtained)
-			if not item:is_obtained() then
-                item:draw()			
+			-- draw items (if not obtained)(or if the item is equipped by a user, draw it on user's body)
+			if not item:is_obtained() or (string.find(item:get_type(), nocase("Equipment")) and player:is_equipped(item)) then --
+                 item:draw()			
 			end
 		end
     end

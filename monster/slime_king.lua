@@ -25,7 +25,7 @@ if dokun then
     slime_king.health_bar:set_outline_width(2.0)	
 end
 end
-slime_king:load("monster/slime_king.png")
+slime_king:load("monster/slime_king32x.png")
 
 function slime_king:on_kill( player )
     self:check( player )
@@ -41,30 +41,20 @@ function slime_king:on_draw( player )
 		        -- on collision with a player
 if dokun then				
 		        if Sprite.collide( self, player ) then
-			        self:fight( player ) -- fight to the death	
+			        self:hit( player ) -- fight to the death	
 			    end
 end				
 		        -- detect a nearby player (150 units far)
 		        if self:detect( player, 150 ) then 
 				    -- player is the new target
 					self:set_target( player )
-				    -- follow the player
+					--print(self:get_target(), self:get_target():get_name())
+				    -- follow the player (target)
 				    self:follow( player )
 					--print("Boss incoming!")
 				else self:set_target( nil ) -- target is lost when distance is too far
 				end --print("Boss nearby!") 
 		    end
-if dokun then
-            -- retrieve size and position
-            slime_king.width, slime_king.height = Sprite.get_texture(slime_king):get_size()
-            slime_king.x, slime_king.y          = Sprite.get_position(slime_king)
-            -- update healthbar
-			slime_king.health_bar:set_size(slime_king.width, 5)
-			slime_king.health_bar:set_position(slime_king.x, slime_king.y + slime_king.height + -15)  -- +?? spacing -- update slimehbar position in loop
-	        slime_king.health_bar:set_range(slime_king:get_health(), slime_king:get_maximum_health())
-			slime_king.health_bar:set_value(slime_king:get_health()) -- update slimehbar value in loop
-	        slime_king.health_bar:draw() -- draw slimehbar
-end	
 		end
 			-- if its health is lower than its max_health
 			-- as long as not dead, regenerate health at all times

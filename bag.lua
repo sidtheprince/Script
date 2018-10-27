@@ -180,14 +180,14 @@ function Bag:get_empty()
     return self:get_maximum_slots() - self:get_size()
 end
 ---------------
- -- returns item name in the specified slot
+ -- returns item in the specified slot
 function Bag:get_item_in_slot(slot)
     if self.slots[slot] == nil then
         print("Empty Slot")
 		return nil
     end
     if self.slots[slot] ~= nil then
-        return self.slots[slot].name
+        return self.slots[slot]--.name
     end
 end
 ---------------

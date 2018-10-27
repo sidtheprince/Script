@@ -16,7 +16,7 @@ if not sword:load("item/sword.png") then
 end
 
 function sword:on_use(user)
-    user:equip(self)
+    if is_player(user) then user:equip(self) end
 end
 
 function sword:on_collide()
