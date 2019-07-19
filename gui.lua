@@ -112,11 +112,11 @@ end
 -- bag_toggle_coroutine
 bag_toggle = function()
 	for i =1, #bag_slots do
-		if bag_slots[i]:is_visible() then bag_slots[i]:hide() end
+		if bag_slots[i]:is_visible() then bag_slots[i]:hide() end--hide gold_box as well: gold_box:hide()
 	end	
 	coroutine.yield()
 	for i =1, #bag_slots do
-	    if not bag_slots[i]:is_visible() then bag_slots[i]:show() end
+	    if not bag_slots[i]:is_visible() then bag_slots[i]:show() end--show gold_box as well: gold_box:show()
 	end
 end
 bag_toggle_co = coroutine.create(bag_toggle) --add function to coroutine
@@ -128,9 +128,10 @@ bag_toggle_co = coroutine.create(bag_toggle) --add function to coroutine
 empty_texture = Texture:new() -- always keep this texture empty. NEVER fill it with any data!
 --empty_texture:set_size(32, 32)--the default texture size is 32x32 so no need to set it--set size to be same as bag_slots[x]?
 --empty_texture:set_color(64, 64, 64, 255)-- unable to set_color on pure Texture--set size to be same as bag_slots[x]?
--- gold 
+--==========================================
+-- gold_box 
 gold_box = Widget:new()
-gold_box:set_size(50, 32)
+gold_box:set_size(100, 32)
 gold_box:set_label(Label:new()) gold_box:get_label():set_string(tostring(0))
 gold_box:set_image(Image:new())
 if Sprite.get_texture(gold):is_texture() then gold_box:get_image():copy_texture(Sprite.get_texture(gold)) end
@@ -147,22 +148,20 @@ tooltip_toggle = function(bag)
 	if not bag then bag = Bag end
 	local item, item_x, item_y, item_width, item_height
 	for i=1, bag:get_maximum_slots() do
-		item = bag.slots[i] -- get item from bag.slots
+		item = bag.slots[i] -- get item from Bag.slots
 		if is_item(item) then -- if item is valid    
 			item_x, item_y          = bag_slots[item:get_slot()]:get_position()--get bag_slot's rect
 			item_width, item_height = bag_slots[item:get_slot()]:get_size()
 
-			if Sprite.get_texture(item):get_file() == bag_slots[item:get_slot()]:get_image():get_file() then
-			    --print(item:get_name().."'s filename matches item in bag_slots "..item:get_slot())
-			end
-	    
-		    if Mouse:is_over(item_x, item_y, item_width, item_height) then
-			    tooltip:get_label():set_string(item:get_name())
-			    tooltip:show()
-			    --print("Mouse is over "..item:get_name())--for debug purposes
-		    else
-			    tooltip:hide()	
-			end	
+			if Mouse:is_over(item_x, item_y, item_width, item_height) then
+				if Sprite.get_texture(item):get_data() == bag_slots[item:get_slot()]:get_image():get_data() then --if the item's texturedata is equal to the bag_slots' texturedata
+				    --print(item:get_name().."'s data matches item in bag_slots "..item:get_slot())	
+				    tooltip:get_label():set_string(item:get_name())
+			        tooltip:show()
+			        --print("Mouse is over "..item:get_name())--for debug purposes
+		        else tooltip:hide()-- hide tooltip--does hide for some reason
+				end		 
+			end--this end closes the if sprite:texture:filename = bag_slots:filename
 	   end
 	end
 end
@@ -254,13 +253,13 @@ function update_ui()
 	-- gold_box
 	gold_box:get_label():set_string(tostring(Bag.gold))
 	gold_box:set_position(bag_slots[10]:get_x()+bag_slots[10]:get_width()+2, bag_slots[1]:get_y())--((bag_slots[1]:get_x()-gold_box:get_width())-1, bag_slots[1]:get_y())
+	if Mouse:is_over(gold_box:get_rect()) then tooltip:get_label():set_string(gold:get_name().."s: "..tostring(Bag.gold)) tooltip:show() else tooltip:hide() end
 	gold_box:draw()
 	--===============================================================
 	-- tooltip
 	--tooltip:show()--only show if mouse_over object
-	tooltip:get_label():set_string("Tooltip")
 	tooltip:set_size(10 * string.len(tooltip:get_label():get_string()), 16)
-	tooltip:set_position(500, 500)
+	tooltip:set_position(bag_slots[(#bag_slots / 2)]:get_x(), bag_slots[1]:get_y()-bag_slots[1]:get_height())
 	tooltip_toggle()
 	tooltip:draw()
 	--===============================================================	

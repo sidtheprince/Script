@@ -887,7 +887,7 @@ function Player:equip(item)
 	if string.find( item:get_subtype(), nocase("Weapon") ) or string.find( item:get_subtype(), nocase("Smasher") ) or string.find(item:get_subtype(), nocase("Blaster")) or string.find(item:get_subtype(), nocase("Explosive")) then
 		-- If [weapon] slot is taken
 		if self.equipment[ WEAPON ] then
-		    local weapon = item
+		    local weapon = item --new weapon to be equipped
 			-- remove effect from old weapon
 			self:set_power( self:get_power() - self.equipment[ WEAPON ]:get_effect() )
 			print( "-"..self.equipment[ WEAPON ]:get_effect().." power" )
