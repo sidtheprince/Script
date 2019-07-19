@@ -892,7 +892,7 @@ function Player:equip(item)
 			self:set_power( self:get_power() - self.equipment[ WEAPON ]:get_effect() )
 			print( "-"..self.equipment[ WEAPON ]:get_effect().." power" )
 			-- swap weapons
-			if dokun then if Sprite.get_texture(self.equipment[ WEAPON ]):is_texture() then bag_slots[ weapon:get_slot() ]:get_image():copy_texture(Sprite.get_texture(self.equipment[ WEAPON ])) end end
+			if dokun then if Sprite.get_texture(self.equipment[ WEAPON ]):is_texture() then bag_slots[ weapon:get_slot() ]:get_image():copy_texture(Sprite.get_texture(self.equipment[ WEAPON ])) end end--copy old_weapon's texturedata to bag_slots:image
 		    Bag.slots[ weapon:get_slot() ] = self.equipment[ WEAPON ] -- bag slot stores old(already-equipped) weapon
 		    self.equipment[ WEAPON ] = weapon  -- new weapon is inserted into the weapon_equip_slot 
 			-- add effect from new weapon
