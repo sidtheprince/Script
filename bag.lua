@@ -22,11 +22,6 @@ function Bag:new()
         Every new bag has its own slots, but
         all bags share the same amount of gold.
     ]]--
-if dokun then
-    --bag.ui = Grid:new()
-	--bag.ui:set_row(2)
-	--bag.ui:set_column(5)
-end	
 	if not Bag.id then Bag.id = 0 end
 	Bag.id = Bag.id + 1
 	bag.id = Bag.id	
@@ -34,16 +29,6 @@ end
     return bag
 end
 ---------------
-if dokun then --[[
-    if not Bag.icon then 
-	    Bag.icon = Button:new() 
-	end
-	if not Bag.ui then
-	    Bag.ui = Grid:new()
-		Bag.ui:set_row(2)
-	    Bag.ui:set_column(5)
-	end ]]--
-end
 ---------------
 function Bag:open() 
     -- item
@@ -86,23 +71,30 @@ function Bag:insert( item, amount ) -- new!
 		end
 	end
 	if is_item(item) then
-		-- stackable
+		-- stackable -- stackable items such as potion, gold
 		if item:is_stackable() then
 			-- original item
 			if not item:is_copy() then
 				-- was previously in bag
 				if item:in_bag() then
 					-- increase quantity (by certain amount)
-					item:set_quantity(item:get_quantity() + amount)
+					item:set_quantity(item:get_quantity() + amount)--no need to add item image to slot if it was in bag previously and only the quantity needs to be increased
+					-- dokun graphical stuff ...
+					if dokun then bag_slots[item:get_slot(self)]:get_label():set_string(tostring(item:get_quantity())) bag_slots[item:get_slot(self)]:get_label():show() end--set quantity as bag_slots[item:get_slot(self)].label's string
 					return true
 				end
 				-- not previously in bag
 				if not item:in_bag() then
-					-- store item
-			        self.slots[ #self.slots + 1 ] = item
+					-- store item (in the first available slot)
+			        self.slots[self:get_first_available_slot()] = item--self.slots[ #self.slots + 1 ] = item--this will store item in the last index of Bag.slots
 				    -- increase quantity (by certain amount)
-					item:set_quantity(item:get_quantity() + amount)
-                    return true					
+					item:set_quantity(item:get_quantity() + amount)--add the item image to slot as it has not been in the bag previously
+					-- dokun graphical stuff ...
+					if dokun then
+						bag_slots[item:get_slot(self)]:get_label():set_string(tostring(item:get_quantity())) bag_slots[item:get_slot(self)]:get_label():show()--set quantity as bag_slots[item:get_slot(self)].label's string
+						if Sprite.get_texture(item):is_texture() then    bag_slots[item:get_slot(self)]:get_image():copy_texture(Sprite.get_texture(item)) end--if the item's texture_data is not nullptr, bag_slot will copy its texture
+					end					
+					return true					
 				end
 			end
 			-- a copy item
@@ -112,16 +104,23 @@ function Bag:insert( item, amount ) -- new!
 				-- was previously in bag
 				if parent:in_bag() then
 					-- increase parent quantity
-					parent:set_quantity(parent:get_quantity() + amount)
-                    return true					
+					parent:set_quantity(parent:get_quantity() + amount)--no need to add item image to slot if it was in bag previously and only the quantity needs to be increased
+					-- dokun graphical stuff ...
+					if dokun then bag_slots[parent:get_slot(self)]:get_label():set_string(tostring(parent:get_quantity())) bag_slots[parent:get_slot(self)]:get_label():show() end--set quantity as bag_slots[parent:get_slot(self)].label's string
+					return true					
 				end						
 			    -- was not previously in the bag
 			    if not parent:in_bag() then
 				    -- store parent only
-				    self.slots[ #self.slots + 1 ] = parent
+				    self.slots[self:get_first_available_slot()] = parent--self.slots[ #self.slots + 1 ] = parent
 					-- increase parent quantity (by certain amount)
-					parent:set_quantity( parent:get_quantity() + amount )
-                    return true					
+					parent:set_quantity( parent:get_quantity() + amount )--add the item image to slot as it has not been in the bag previously
+					-- dokun graphical stuff ...
+					if dokun then
+						bag_slots[parent:get_slot(self)]:get_label():set_string(tostring(parent:get_quantity())) bag_slots[parent:get_slot(self)]:get_label():show()--set quantity as bag_slots[parent:get_slot(self)].label's string
+						if Sprite.get_texture(parent):is_texture() then    bag_slots[parent:get_slot(self)]:get_image():copy_texture(Sprite.get_texture(parent)) end--if the item's texture_data is not nullptr, bag_slot will copy its texture
+					end
+					return true					
 			    end
 			end
 		end
@@ -133,10 +132,15 @@ function Bag:insert( item, amount ) -- new!
 			end	
 			-- not previously in bag
 			if not item:in_bag() then
-			-- store item
-			    self.slots[ #self.slots + 1 ] = item
+			    -- store item
+			    self.slots[self:get_first_available_slot()] = item--self.slots[self:get_first_available_slot()] = item--self.slots[ #self.slots + 1 ] = item
 				-- increase quantity (only by 1)
 				item:set_quantity(item:get_quantity() + 1)
+				-- dokun graphical stuff ...
+				if dokun then
+					bag_slots[item:get_slot(self)]:get_label():set_string(tostring(item:get_quantity())) bag_slots[item:get_slot(self)]:get_label():show()--set quantity as bag_slots[item:get_slot(self)].label's string
+					if Sprite.get_texture(item):is_texture() then    bag_slots[item:get_slot(self)]:get_image():copy_texture(Sprite.get_texture(item)) end--if the item's texture_data is not nullptr, bag_slot will copy its texture
+				end
                 return true				
 			-- already in bag (non-stackable)
 			-- use a copy (non-stackables must be unique)
@@ -149,7 +153,7 @@ function Bag:insert( item, amount ) -- new!
 	return false
 end
 ---------------
-function Bag:empty() -- new!
+function Bag:empty() -- new! --empties out bag, leaving no trace of item
     for slot, item in pairs(self.slots) do
 	    -- zero out quantities
         if is_item(item) then
@@ -157,6 +161,10 @@ function Bag:empty() -- new!
 		end
 		-- empty bag
 		self.slots[slot] = nil
+		-- dokun graphical stuff ...
+if dokun then--uncomment if using this line
+	    --if bag_slots and empty_texture then bag_slots[slot]:get_image():copy_texture(empty_texture) end
+end			
 	end
 end
 ---------------
@@ -172,11 +180,22 @@ function Bag:get_maximum_slots() -- maximum slots
     return self.max_slots
 end
 ---------------
+function Bag:get_first_available_slot() -- new!!
+	if self:get_size() == 0 then return 1 end -- if bag is empty, return 1 (1 = first available slot, since lua table indexes start at 1)
+	-- if bag is not empty, get the first available slot you see
+	for i=1, self:get_maximum_slots() do
+		if self.slots[i] == nil then -- first empty slot (you approach)
+            return i -- exit function, once you get the first empty slot
+		end
+	end	
+	return 0
+end	
+---------------
 function Bag:get_taken() -- takened slots
     return self:get_size()
 end
 ---------------
-function Bag:get_empty()
+function Bag:get_empty() --returns number of empty slots in bag
     return self:get_maximum_slots() - self:get_size()
 end
 ---------------

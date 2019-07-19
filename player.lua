@@ -15,6 +15,9 @@ Player =
 	level_cap  =    150;
 	spawn_point_x =   0;
 	spawn_point_y =   0;
+	combat_distance = 20;
+	melee_combat_distance = 10;
+	magic_combat_distance = 20;
 	-- physics attributes
 	mass          =   0; -- in kg
 }
@@ -132,17 +135,15 @@ function Player:reflect(x, y)
 	end
 end
 ------------------
-function Player:hit() -- attack player, monster, or npc
+function Player:hit(target) -- attack player, monster, or npc
     local damage 
-	local target = self:get_target()
 	
 	if not target then return end --no target to hit, exit function	
-	if self:is_dead() then print("You are dead") return --if self is dead, exit function
-	end
-	if not self:is_dead() then
-	    if target:is_dead() then print(target:get_name().." is dead") return end
-	end --if target is dead
-    if not self:is_dead() and not target:is_dead() then
+	if self:is_dead() then return end--if self is dead, exit function
+	if not self:is_dead() then if target:is_dead() then return end end --if target is dead, exit function
+	-- if both self and target are not dead (alive)
+	if not self:is_dead() and not target:is_dead() then
+    if target:detect(self, self:get_melee_combat_distance()) then --print("You are in combat distance!")-- temp--set player.combat_distance for both melee and magic
         -- calc damage
         damage = self:get_attack() - target:get_defense()    -- Player.get_attack is the same as Player.get_power
 		if damage < 0 then
@@ -150,20 +151,30 @@ function Player:hit() -- attack player, monster, or npc
 		    damage = 1
 		end
         -- deal damage
-        target:set_health( target:get_health() - damage )
-        -- show message
+		target:set_health( target:get_health() - damage )
+		-- the moment you deal damage or are attacked, your target is set as well as your enemy's target
+		target:set_target(self)--set monster target to you
+		-- show message
         print("You attack "..target:get_name().." +"..damage)
 		-- adjust health
-		if self:get_health() < 0 then
-		    self:set_health(0)
+		if self:get_health() <= 0 then
+			self:set_health(0)
+			self:set_target(nil)-- you no longer have a target
+			target:set_target(nil)-- monster no longer has a target 
 			print("You have died")
 	        return
 		end		
-        if target:get_health() < 0 then 
-		    target:set_health(0) 
+        if target:get_health() <= 0 then 
+			target:set_health(0) 
+			target:set_target(nil)-- monster no longer has a target
+			self:set_target(nil)-- you no longer have a target
 			print("You have slain "..target:get_name())
+			-- the victor takes all monster drops
+			-- call target.on_defeat for drops?
+			if type(target.on_defeat) == "function" then target:on_defeat(self) end			
 			return
 		end
+    end -- temp
     end
 end
 ------------------
@@ -190,12 +201,14 @@ function Player:level_up()
             print("Your level has been upgraded.")
             print("You are now level "..self:get_level().."!")
             -- increment stats
-            self:set_health( self:get_health() + 1 )
-            self:set_mana( self:get_mana() + 1 )
+            self:set_maximum_health( self:get_maximum_health() + 1 )
+            self:set_maximum_mana( self:get_maximum_mana() + 1 )
             self:set_power( self:get_power() + 1 )
             self:set_defense( self:get_defense() + 1 )
             self:set_magic( self:get_magic() + 1 )
-            self:set_magic_defense( self:get_magic_defense() + 1 )
+			self:set_magic_defense( self:get_magic_defense() + 1 )
+			-- restore full_health after battle (if not in combat)
+			if not self:get_target() then self:set_health(self:get_maximum_health()) self:set_mana(self:get_maximum_mana())end
         end
     end
 end
@@ -291,6 +304,27 @@ function Player:show_quests()
 	    local statusnum, status = quest:get_status()
         print( quest:get_name(), status, quest:get_objective() )
     end
+end
+------------------
+function Player:check(qtarget) -- checks if a quest in the player's quest log is related to a monster
+    if not self.quest then self.quest = {} end
+    for _, quest in pairs(player.quest) do
+	    if is_quest(quest) then
+		    if quest:in_progress() then
+			    local target = quest:get_target()
+				if target == qtarget or getmetatable(qtarget) == qtarget.mt then
+				    if target.slain < target.kill_limit then -- not finished yet
+					    target.slain = target.slain + 1 -- increment
+						print(target:get_name().."s slain: "..target.slain.."/"..target.kill_limit.." ")
+						if target.slain == target.kill_limit then 
+						    --print("Quest complete!") 
+							--npc must confirm that the quest is 100% completed
+						end
+					end
+				end
+			end
+		end
+	end
 end
 ------------------
 -- SETTERS
@@ -398,6 +432,13 @@ function Player:set_texture(texture)
 	    Sprite.set_texture(self, texture)
 	end
 end
+------------------
+function Player:set_melee_combat_distance(mcd)
+	self.get_melee_combat_distance = mcd
+end
+function Player:set_magic_combat_distance(mcd)
+	self.magic_combat_distance = mcd
+end	
 ------------------
 -- GETTERS
 ------------------
@@ -680,6 +721,13 @@ if dokun then
 end
     return 0, 0
 end
+------------------ 07-14-2019
+function Player:get_melee_combat_distance()
+	return self.melee_combat_distance
+end
+function Player:get_magic_combat_distance()
+	return self.magic_combat_distance
+end		
 ------------------
 -- BOOLEAN
 ------------------
@@ -691,8 +739,8 @@ function Player:is_player()
     if getmetatable(self) == Player_mt then return true 
 	end
 	-- copy
-	local g = _G
 if not dokun then
+	local g = _G
 	for _, player in pairs(g) do
 	    if getmetatable(player) == Player_mt then
             if getmetatable(self) == player.mt then
@@ -702,8 +750,8 @@ if not dokun then
 	end
 end
 if dokun then
-	for _ = 1, Player.factory:get_size() do
-	    if self == Player.factory:get_object(_).mt then
+	for p = 1, Player.factory:get_size() do
+	    if self == Player.factory:get_object(p).mt then
 			return true
 		end
 	end
@@ -824,34 +872,17 @@ end
 ------------------
 function Player:equip(item)
     -- Is there an equipment slot?
-	if not self.equipment then
-	    self.equipment = {}
-	end
+	if not self.equipment then self.equipment = {} end
     -- Is the player dead?
-    if self:is_dead() then
-	    print("You are dead")
-	    return 
-	end
+    if self:is_dead() then print("You are dead") return end
 	-- Is this a valid item?
-	if not is_item(item) then
-	    print("Not a valid item")
-		return
-	end
+	if not is_item(item) then print("Not a valid item") return end
 	-- Is the item in the bag?
-	if not item:in_bag() then
-	    print(item:get_name().." not in Bag")
-		return
-	end
+	if not item:in_bag() then print(item:get_name().." not in Bag") return end
 	-- Can the item be equipped?
-	if not string.find( item:get_type(), nocase("Equipment") ) then
-		print(item:get_name().." cannot be equipped")
-		return
-	end
+	if not string.find( item:get_type(), nocase("Equipment") ) then print(item:get_name().." cannot be equipped") return end
 	-- Does the player meet the requirements?
-	if player:get_level() < item:get_require() then
-		print("Your level is too low")
-		return
-	end
+	if player:get_level() < item:get_require() then print("Your level is too low") return end
 	-- weapon
 	if string.find( item:get_subtype(), nocase("Weapon") ) or string.find( item:get_subtype(), nocase("Smasher") ) or string.find(item:get_subtype(), nocase("Blaster")) or string.find(item:get_subtype(), nocase("Explosive")) then
 		-- If [weapon] slot is taken
@@ -860,8 +891,9 @@ function Player:equip(item)
 			-- remove effect from old weapon
 			self:set_power( self:get_power() - self.equipment[ WEAPON ]:get_effect() )
 			print( "-"..self.equipment[ WEAPON ]:get_effect().." power" )
-		    -- swap weapons
-		    Bag.slots[ weapon:get_slot() ] = self.equipment[ WEAPON ] -- bag slot is placed with old(already-equipped) weapon
+			-- swap weapons
+			if dokun then if Sprite.get_texture(self.equipment[ WEAPON ]):is_texture() then bag_slots[ weapon:get_slot() ]:get_image():copy_texture(Sprite.get_texture(self.equipment[ WEAPON ])) end end
+		    Bag.slots[ weapon:get_slot() ] = self.equipment[ WEAPON ] -- bag slot stores old(already-equipped) weapon
 		    self.equipment[ WEAPON ] = weapon  -- new weapon is inserted into the weapon_equip_slot 
 			-- add effect from new weapon
 			self:set_power( self:get_power() + self.equipment[ WEAPON ]:get_effect() )
@@ -884,20 +916,17 @@ function Player:equip(item)
 	-- assistant
 end
 ------------------
-function Player:unequip(item)
+function Player:unequip(item, bag)
     -- Is there an equipment slot?
-	if not self.equipment then
-	    self.equipment = {}
-	end
+	if not self.equipment then self.equipment = {} end
     -- Is the player dead?
-    if self:is_dead() then
-	    print("You are dead")
-	    return 
-	end
+    if self:is_dead() then print("You are dead") return end
 	-- Is this a valid item? -- added 10-25-2018
 	if not is_item(item) then print("Not a valid item") return end
+	-- what bag you using?
+	if not bag then bag = Bag end
 	-- make sure there is space in bag first -- added 10-25-2018
-	if Bag:is_full() then print("Cannot unequip "..item:get_name()..". Your bag is full") return end
+	if bag:is_full() then print("Cannot unequip "..item:get_name()..". Your bag is full") return end
 	-- Is the item in the slot?
     for slot, equip_ in pairs(self.equipment) do
 		if equip_ == item then
@@ -922,7 +951,7 @@ function Player:unequip(item)
 			if slot == BADGE then end
 			if slot == UNSPECIFIED then end
 			-- move to bag
-			Bag:insert( item )	
+			bag:insert( item )	
 		end
 	end
 end

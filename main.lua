@@ -44,9 +44,10 @@ create_ui()
 --frame = 0
 
 -- play theme song
-theme = Music:new("audio/guardia.mp3")
-theme:play()
-
+--theme = Music:new("audio/guardia.ogg")
+--theme:set_volume(1)
+--theme:play()
+local monst--print("Press space to attack") 
 --Script.save("potion")
 while window:is_open() do
 -- ======================
@@ -60,7 +61,7 @@ while window:is_open() do
 	-- draw item
     Item:draw_all()
 	-- draw objects (static)
-	-- draw_monster
+    -- draw_monster
 	Monster:draw_all()
 	-- draw NPC
 	NPC:draw_all()--king:draw()
@@ -68,14 +69,22 @@ while window:is_open() do
 	player:draw()
 	-- draw and update ui
 	update_ui()
-	npc_dialogue_box:draw()-- draw dialogue_box as long as its visible
 -- ======================
-   if window:is_focused() then
-        --if theme:is_paused() then theme:play() end
-   end
-   if not window:is_focused() then
-        --theme:pause()
-   end   
+    if window:is_focused() then
+        if theme then if theme:is_paused() then theme:play() end end
+        -- initiate attack on monster
+        if Keyboard:is_pressed(KEY_SPACE) == true then
+            for m=1, Monster.factory:get_size() do 
+                monst = Monster.factory:get_object(m)
+                if is_monster(monst) then
+                    if monst:detect(player, 20) then player:hit(monst) end
+                end
+            end
+        end    
+    end
+    if not window:is_focused() then
+        if theme then theme:pause() end
+    end
 -- ======================	
     window:update()
 end
@@ -84,3 +93,5 @@ if not window:is_open() then
     dokun:close()    -- close lua (also calls on the gc to collect garbage) then closes the console
 end
 end -------------------------------------------------------------------  dofile"D:/sid/media/other/code/Script/main.lua"
+-- freesounds account : lars1144 pw: s***123
+-- ./dokun -e"require'main'"

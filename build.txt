@@ -1,1 +1,1 @@
-luac global.lua system.lua time.lua data.lua math1.lua string1.lua log.lua player.lua item.lua storage.lua pet.lua monster.lua bag.lua world.lua shop.lua quest.lua npc.lua guild.lua magic.lua profession.lua battle.lua object.lua stance.lua chat.lua gui.lua
+luac main.lua global.lua system.lua time.lua data.lua math1.lua string1.lua log.lua player.lua item.lua storage.lua pet.lua monster.lua bag.lua world.lua shop.lua quest.lua npc.lua guild.lua magic.lua profession.lua battle.lua object.lua stance.lua chat.lua gui.lua

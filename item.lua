@@ -32,10 +32,9 @@ end
 ------------------
 function Item:new(name, type, require, description, effect)
     local item 
-    if dokun then
-        item = Sprite:new()
+    if dokun then item = Sprite:new() -- table with ".udata" field
     else
-        item = {}
+        item = {} -- ordinary table
     end 
     ---------------------
 	-- Item:new()
@@ -66,11 +65,11 @@ function Item:new(name, type, require, description, effect)
     -- make clone function for inst
     item.new = function()
         local new_item 
-        if dokun then
-            new_item = Sprite:new() 
-        else			
-		    new_item = {}
-        end
+if dokun then 
+        new_item = Sprite:new() 
+else			
+		new_item = {}
+end
 if dokun then
 	    Item.factory:store(new_item) -- store even clone  in factory database
 end		
@@ -82,7 +81,7 @@ end
         return new_item
     end
 	--------------------
-	if dokun then 
+if dokun then 
 	    Item.factory:store(item) -- store original item in factory
 	end
     setmetatable(item, Item_mt)
@@ -99,6 +98,7 @@ if dokun then
 	Sprite.set_texture(self, texture)
 end
     if self.on_load then self:on_load() end
+    self.filename = filename--save filename as proof that it has been loaded
     return true
 end
 -----------------
@@ -110,9 +110,9 @@ end
 end
 ----------------
 -- if mouse over self, info displayed
-function Item:show()
+function Item:show_info()
     if is_item(self) then
-        print("Item name: "..self:get_name())
+        print("Item name: "..self:get_name())--Item_name_label = Label:new() Item_name_label:set_string(self:get_name())
         print("ID: "..self:get_id())
         print("type: "..self:get_type())
         if self:get_require() <= 0 then
@@ -154,8 +154,10 @@ function Item:swap(slot_num) -- Switch slots with another item in the bag.
     if self:in_bag() then
         -- Slot is empty.
         if Bag.slots[slot_num] == nil then
+            if dokun then bag_slots[self:get_slot()]:get_image():copy_texture(empty_texture) end-- Empty texture on old slot
             Bag.slots[self:get_slot()] = nil -- Empty old slot. 
             Bag.slots[slot_num] = self -- Fill new slot.
+            if dokun then if Sprite.get_texture(self):is_texture() then bag_slots[self:get_slot()]:get_image():copy_texture(Sprite.get_texture(self)) end end -- File self.texture on new slot
         else
             -- Slot is taken.  
             Bag.slots[self:get_slot()] = Bag.slots[slot_num] -- Move the other item from its slot to self's slot.
@@ -263,23 +265,31 @@ function Item:delete(amount, bag) -- Delete an item in your bag.
   -- NON-STACKABLE CLONES(EQUIPMENT CLONES) ARE TREATED AS ORDINARY OBJECTS INHERITED FROM Item
  -- reduce quantity of item if above zero
  -- by a specified amount. (and if self is original item) e.g potion, sword or non-stackable clone
-    if not self:is_copy() or not self:is_stackable() then -- or not stackable
-        if self:get_quantity() > 0 then self:set_quantity( self:get_quantity() - amount ) 
-    end
-    elseif self:is_copy() and self:is_stackable() then
-	-- reduce quantity of parent if stackable copy e.g potion:new()
-    if self:get_parent():get_quantity() > 0 then self:get_parent():set_quantity(self:get_parent():get_quantity() - amount) end
+    if not self:is_copy() or not self:is_stackable() then -- original or non-stackable
+        if self:get_quantity() > 0 then self:set_quantity( self:get_quantity() - amount ) --reduce the quantity
+        -- dokun graphical stuff
+        if dokun then bag_slots[self:get_slot(bag)]:get_label():set_string(tostring(self:get_quantity())) end--set quantity label
+        end
+    elseif self:is_copy() and self:is_stackable() then -- both a copy and stackable
+        -- reduce quantity of parent if stackable copy e.g potion:new()
+        local parent = self:get_parent()
+        if self:get_parent():get_quantity() > 0 then self:get_parent():set_quantity(self:get_parent():get_quantity() - amount) 
+        -- dokun graphical stuff
+        if dokun then bag_slots[parent:get_slot(bag)]:get_label():set_string(tostring(parent:get_quantity())) end--set quantity label
+        end
 	end                                                                
   
  -- once the  quantity reaches 0, remove it from bag
     if not self:is_stackable() or -- equipment (non-stackable)
     self:get_quantity() <= 0 then -- None of the specific item found in bag.
-        self:set_quantity(0) -- To ensure that the item's quantity not a negative number.
+        self:set_quantity(0) -- To ensure that the item's quantity is not a negative number.
         -- now remove from slot
-        for i = 1, #bag.slots do
+        for i = 1, bag:get_maximum_slots() do--#bag.slots do
             -- bag slot contains the original item (not a copy) since its not stackable
             if bag.slots[i] == self then -- The item is found in bag.
-                table.remove(bag.slots, i) -- Remove item from Bag, shifting elements up.
+                bag.slots[i] = nil--set slot where item was to nil --table.remove(bag.slots, i) -- Remove item from Bag, shifting elements up.--WARNING:Shifting items up-a-slot is a bad idea! Instead delete it from its current slot and when adding a new item, place it in the first available slot (that is nil)
+                -- dokun graphical stuff ... because of the item shifting up the slot, the image on its old_slot is not updated!!!!!!
+                if dokun then if bag_slots and empty_texture then bag_slots[i]:get_image():copy_texture(empty_texture) end end
                 break
             end
         end
@@ -498,8 +508,8 @@ function Item:get_slot(bag) -- Get slot number of item inside bag or storage.
  -- NON-Stackable items are their own tables while stackable will become the exact as the parent
  -- a clone and stackable e.g. potion:new()
     local item_obj = self
-	if self:is_copy() and self:is_stackable() then
-   -- get the original item
+	if self:is_copy() and self:is_stackable() then-- if self is a copy and stackable, get its parent
+   -- get the original item and set item_obj to equal self.parent
         item_obj = self:get_parent()
     end 
     for slot_num, item in pairs(bag.slots) do

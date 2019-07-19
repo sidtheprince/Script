@@ -20,18 +20,18 @@ Quest_mt = {
 ------------------
 function Quest:new(name, giver, require, hint, target, number)
     local quest 
-	if (dokun) then
-	    quest = Sprite:new()
-	else
-	    quest = {}
-	end
-	if self == Quest then
+if dokun then
+	quest = Sprite:new()
+else
+	quest = {}
+end
+	if self == Quest then -- Quest:new
         quest.name    = name
         quest.giver   = giver
         quest.require = require
         quest.hint    = hint
 	else
-	    quest.name    = self
+	    quest.name    = self -- Quest.new
         quest.giver   = name
         quest.require = giver
         quest.hint    = require
@@ -122,7 +122,8 @@ function Quest:delete(player)
 		    self:set_status(1)
 			--end
             -- remove from log			
-		    player.quest[index] = nil
+			player.quest[index] = nil
+			print("Quest \""..quest:get_name().."\" deleted")
 		end
 	end
 end
@@ -198,12 +199,8 @@ function Quest:set_repeatable(repeatable)
 end
 ------------------
 function Quest:set_reward(reward, amount, type_)
-    if not amount then 
-	    amount = 1
-	end
-    if not self.reward then
-	    self.reward = {}
-	end
+    if not amount then amount = 1 end
+    if not self.reward then self.reward = {} end --quest.reward
 	if is_item(reward) then
 	    self.reward[#self.reward + 1] = reward:new()
 		self.reward[#self.reward].amount = amount

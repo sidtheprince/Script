@@ -2,7 +2,7 @@
 player = Player:new("Siddy")
 player:set_level(1)
 player:set_exp(0)
-player:set_maximum_health(10000)
+player:set_maximum_health(1000)
 player:set_maximum_mana(1000)
 player:set_health(player:get_maximum_health()) -- initial hp
 player:set_mana(player:get_maximum_mana()) -- initial mp
@@ -72,7 +72,7 @@ if dokun then
 	]]--
 	-----------------------------------
 	if window:is_focused() then
-	    local speed = 2
+	    local speed = 10
 	    if Keyboard:is_pressed("up", 0) then
 	        Sprite.translate(self, 0, -speed)
 	    end
@@ -125,9 +125,10 @@ if dokun then
     -- if player is visible and is dead
     if Sprite.is_visible(self) then
 	if self:is_dead() then
-	    Sprite.set_texture( self, player_dead )
+		Sprite.set_texture( self, player_dead )
 		print("You are dead")
-			-- lose some exp (1%)
+
+		    -- lose some exp (1%)
             local current_exp = self:get_exp()
 	        local one_percent = percent_of(1, current_exp) -- one percent of current_exp
             if one_percent > 0 then
@@ -144,7 +145,7 @@ end
 end
 
 function player:on_basic_attack()
-    if player:has_target() then player:hit() end --player will attack its target with weapon hitpower
+    if player:has_target() then player:hit(self:get_target()) end --player will attack its target with weapon hitpower
 end
 function player:on_item_equipped()
     local item = self:get_weapon() -- equipment

@@ -151,13 +151,20 @@ function Monster:follow() -- monster must have a "target" to follow
 end
 --------------
 -- monster makes a sound or speaks
-function Monster.speak(monster) 
-    if dokun then
-	    if not self.voice then
-		    self.voice = Sound:new()
-	    end
-		self.voice:play()
-	end
+function Monster:speak(index, volume, loop) 
+if dokun then	
+	if not self.sound_list then self.sound_list = {} return end -- --no voices found in list of monster sounds/voices
+	if not self.voice then self.voice = Sound:new() end
+	local voice = self.voice
+	if type(self.sound_list[index]) == "string" then
+		if not volume then volume = 100 end
+		if not loop then loop = false end
+		voice:load(self.sound_list[index])
+		voice:set_volume(volume)
+		voice:set_loop(loop)
+		voice:play()
+	end -- play sound
+end
 end
 --------------
 function Monster:animate()
@@ -183,7 +190,7 @@ function Monster:roam()
 end 
 --------------
 -- monster drops an item after being slain 
-function Monster:drop(player)
+function Monster:drop(victor) -- perfect 99%!!
   -- get self.exp_drop 
     local exp_gained = self:get_exp_drop()
   -- ensure that self.exp_drop is a number
@@ -193,8 +200,8 @@ function Monster:drop(player)
   -- self.exp_drop must be more than 0 
   -- in order to obtain the exp
   if exp_gained > 0 then 
-   -- give a player some exp
-   player.exp = player.exp + exp_gained
+   -- give the victor some exp
+   victor.exp = victor.exp + exp_gained
   end
    -- show message
    print("Obtained "..exp_gained.." Exp")
@@ -249,8 +256,9 @@ function Monster:detect(enemy, dist) -- how far enemy has to be to be detected
 	    local self_x, self_y
         self_x, self_y = self:get_position()
 		-- calculate the distance (how far they are from one another)
-	    local distance = math.sqrt( math.pow(self_x - enemy_x, 2) + math.pow(self_y - enemy_y, 2) )
-		--print(self:get_name().." distance from player: "..distance) -- temporary
+	    --local distance = math.sqrt( math.pow(self_x - enemy_x, 2) + math.pow(self_y - enemy_y, 2) ) -- math.pow is deprecated in 5.3 **sighs** (-.-)
+		local distance = math.sqrt(((self_x - enemy_x) * (self_x - enemy_x)) + ((self_y - enemy_y) * (self_y - enemy_y)))
+        --print(self:get_name().." distance from player: "..distance) -- temporary
 		-- distance from each other is less than
 		-- 0 distance = right in each other's face; they are in the same position
 		-- 1000 distance = too far from each other
@@ -321,19 +329,16 @@ Monster.regen = Monster.regenerate
  -- monster attacks an opponent 
 function Monster:hit(target)
    local damage 
-	if self:is_dead() then
-	    print(self:get_name().." is dead")
-		return
-	end
+	if self:is_dead() then return end--player cannot fight dead monster
 	if not is_player(target) then return end --return if target is not a player
-	if not self:is_dead() then
-	    if target:is_dead() then
-		    print("You are dead") 
-			return
-		end
-	end
-    if not self:is_dead() and not target:is_dead() then
-        -- calc damage
+	if not self:is_dead() then if target:is_dead() then return end end-- monster cannot fight a dead player
+	-- if both parties are alive and (not dead)		
+	if not self:is_dead() and not target:is_dead() then
+if dokun then		
+	-- monster must be at least 0-2 units in distance or must collide in order to attack target
+	if Sprite.collide( self, target ) then--if self:detect( player, 10 ) then -- temp	--create a combat_distance variable
+end	   
+		-- calc damage
         damage = self:get_attack() - target:get_defense()    
 		if damage < 0 then damage = 0 print(self:get_name().."'s attack missed") end
         -- deal damage
@@ -342,18 +347,24 @@ function Monster:hit(target)
 		target:set_target(self)
         -- show message
         print(self:get_name().." attacks "..target:get_name().." +"..damage)
-		print("Siddy HP: "..target:get_health())
+		print(target:get_name().." HP: "..target:get_health())
 		-- adjust health (if less than 0)
 		if target:get_health() <= 0 then
-		    target:set_health(0)
+			target:set_health(0)
+			target:set_target(nil)-- you no longer have a target 
+			self:set_target(nil)-- self no longer has a target
 			print("You are killed by "..self:get_name())
+			-- monster gains nothing from killing you (may change in the future)
 	        return
 		end		
         if self:get_health() <= 0 then 
-		    self:set_health(0) 
+			self:set_health(0) 
+			self:set_target(nil)-- monster no longer has a target
+			target:set_target(nil)-- you no longer have a target
 			print("You have slain "..self:get_name())
 			return
 		end
+	end	-- temp
     end
 end
 --------------
@@ -481,6 +492,10 @@ function Monster:set_boss(boss)
 	    self.type = 1 
 	end
 end
+-------------- added 07-14-2019 1:44PM
+function Monster:set_aggressive(aggr)
+	self.aggressive = aggr
+end	
 --------------
 function Monster:set_target(target) 
     self.target = target 
@@ -515,9 +530,25 @@ function Monster:set_skill(skill)
 	end 
 end
 --------------
-function Monster:set_voice(voice) 
-    self.voice = voice 
+function Monster:set_sound(soundf) -- adds a voice to sound_list
+	-- check if sound is valid
+	if type(soundf) ~= "string" then print("Sound must be a string") return end -- if not a valid string, then exit
+if dokun then	
+	-- test if sound can be loaded
+	if not self.voice then self.voice = Sound:new() end
+	if self.voice:load(soundf) == false then print("Could not load "..soundf) return end
+end	
+	-- create sound_list if none exists
+	if not self.sound_list then self.sound_list = {} end -- --no voices found in list of monster sounds/voices
+	-- add sound to sound_list
+	self.sound_list[#self.sound_list + 1] = soundf
+	--print("Sound "..soundf.." added to "..self:get_name())
 end -- must be a sound
+--------------
+function Monster:set_current_voice(voice) -- sets the default or current sound/voice
+	-- set default sound
+	if type(voice) == "table" then self.voice = voice end
+end	
 --------------
 function Monster:set_area(area) 
     if is_area(area) then 
@@ -637,6 +668,17 @@ function Monster:get_skill(index)
     return self.skill[index] 
 end
 --------------
+--function Monster:get_voice(voice)
+--  return self.voice
+--end 
+--------------
+function Monster:get_sound(index)
+	-- create sound_list if none exists
+    if not self.sound_list then self.sound_list = {} end -- --no voices found in list of monster sounds/voices
+	-- get index in sound_list
+	return self.sound_list[index]
+end	
+--------------
 function Monster:get_position() 
 if dokun then
 	return Sprite.get_position(self)
@@ -749,11 +791,11 @@ function Monster:is_dead()
     return false 
 end
 --------------
-function Monster:is_boss() 
+function Monster:is_boss() -- Think about it..not all bosses are aggressive and not all aggressives are bosses. But aggressive mobs will always attack nearby players automatically
     return (self:get_type() == 1)
 end
 --------------
-function Monster:is_aggressive()
+function Monster:is_aggressive()-- Think about it..not all bosses are aggressive and not all aggressives are bosses. But aggressive mobs will always attack nearby players automatically
     if self.aggressive then
 	    return true
 	end
@@ -805,8 +847,8 @@ end
 function Monster.boss_event()
 end
 --------------
-function Monster:draw_all()
-if dokun then--this acts as a #define like in C/C++
+function Monster:draw_all() --updates and draws monster
+if dokun then--this will be treated as a #define like in C/C++
     local monster
     for i = 0, Monster.factory:get_size() do
 	    monster = Monster.factory:get_object(i)
@@ -816,7 +858,7 @@ if dokun then--this acts as a #define like in C/C++
                 monster.x, monster.y          = Sprite.get_position(monster)
 			    -- animate the monster monster:animate()
                 -- update monster healthbar
-	            monster.health_bar:set_size(monster.width, 5)
+	            monster.health_bar:set_size(monster.width, 5)--(24, 5)--standard health_bar size
                 monster.health_bar:set_position(monster.x, monster.height + monster.y) -- update slimehbar position in loop
 	            monster.health_bar:set_range(0, monster:get_maximum_health())
 	            monster.health_bar:set_value(monster:get_health()) -- update slimehbar value in loop

@@ -18,29 +18,16 @@ NPC_mt =
 }
 ------------------
 if dokun then
-    NPC.factory = Factory:new()
-	npc_dialogue_box = Widget:new()
-	npc_dialogue_box:set_size(500, 100)
-	npc_dialogue_box:set_position(500, 400)
-	npc_dialogue_box:set_color(160, 160, 160, 255)
-	npc_dialogue_box:set_outline(true)
-	--npc_dialogue_box:set_outline_color(32, 32, 32)
-	npc_dialogue_box:set_gradient(true)
-	--npc_dialogue_box
-	npc_dialogue_box:set_visible(false)
-	-- empty portrait image
-	npc_dialogue_box:set_image(Image:new())
-	-- set label
-	npc_dialogue_box:set_label(Label:new())
+	NPC.factory = Factory:new()
 end
 ------------------
 function NPC:new(name, title)
     local npc 
-    if dokun then
-        npc = Sprite:new()
-    else
-        npc = {}
-    end
+if dokun then
+    npc = Sprite:new()
+else
+    npc = {}
+end
 	---------------
 	if self == NPC then
         npc.name = name
@@ -83,6 +70,7 @@ end
 	self.filename = filename -- save filename
     return true
 end
+------------------
 function NPC:draw()
     if self.on_draw then self:on_draw() end
 if dokun then
@@ -93,21 +81,28 @@ end
 function NPC:talk(text)
     print(self:get_name()..": "..text)
 if dokun then
-    if self.filename then
-	    --npc_dialogue_box:get_image():copy(Image:new(self.filename))
-	    --npc_dialogue_box:get_image(self:get_image())
-        npc_dialogue_box:set_image(Image:new(self.filename))--(Image:new(texture:get_file())
-        --portrait:destroy()
-	end
-	npc_dialogue_box:get_label():set_string(self:get_name()..": "..text)
-	--npc_dialogue_box:get_label():set_size(100, 20)
-	--print(npc_dialogue_box:get_label():get_size())	
-	npc_dialogue_box:show()
+
+--	dialogue_box:get_label():set_string()
+	--dialogue_box:get_label():set_size(100, 20)
+	--print(dialogue_box:get_label():get_size())	
+    self:opend(text)
 	-- prevent player from moving while dialogue_box is open
 	--local player_x, player_y = Sprite.get_position(player)
 	--Sprite.set_position(player, player_x, player_y)
 end	
 end
+------------------ -- NEW
+function NPC:opend(text) -- opens the dialogue box
+if dokun then
+	-- add image to dialogue_box (NPC portrait)(copies NPC's texture)
+	if type(self.filename) == "string" then   dialogue_box:get_image():copy_texture(Sprite.get_texture(self)) end -- can always access image via: dialogue_box:get_image() | don't load, instead copy texture
+	-- add label to dialogue_box -- may give an error: "GUI has no parent"
+	if type(text) == "string" then dialogue_box:get_label():set_string("   "..self:get_name()..": "..text) end--set_string(self:get_name()..": "..text) end--(text) end
+	-- show dialogue_box
+	dialogue_box:show()
+	-- prevent player from moving while dialogue_box is open
+end
+end	
 ------------------
 function NPC:detect(player, dist)
     if not dist then dist = 25 end
@@ -262,14 +257,10 @@ function NPC:set_quest(quest)  -- GOOD!
 end
 ------------------
 function NPC:set_reward(index, reward, amount, _type) -- ??
-    if not amount then
-	    amount = 1
-	end
+    if not amount then amount = 1 end
  -- if no quests have been set
  -- set the quest_list for self
-    if not self.quest then 
-	    self.quest = {} 
-	end
+    if not self.quest then self.quest = {} end
  -- get quest at [index] of self.quest_list
     local quest = self.quest[index]
     -- quest does not exist
@@ -371,23 +362,23 @@ function NPC:is_npc()
     if getmetatable(self) == NPC_mt then 
 	    return true 
     end	
-	if not dokun then
-	    local g = _G
-	    for _, npc in pairs(g) do
-		    if getmetatable(npc) == NPC_mt then
-			    if getmetatable(self) == npc.mt then
-				    return true
-				end
+if not dokun then
+	local g = _G
+	for _, npc in pairs(g) do
+		if getmetatable(npc) == NPC_mt then
+			if getmetatable(self) == npc.mt then
+				return true
 			end
 		end
 	end
-	if dokun then
-	    for i = 1, NPC.factory:get_size() do
-		    if getmetatable(self) == NPC.factory:get_object(i).mt then
-			    return true
-			end
+end
+if dokun then
+	for i = 1, NPC.factory:get_size() do
+		if getmetatable(self) == NPC.factory:get_object(i).mt then
+			return true
 		end
 	end
+end
     return false 
 end
 ------------------
@@ -396,17 +387,17 @@ is_npc = NPC.is_npc
 -- EVENT
 ------------------
 function NPC:select_all()
-    if self:detect(player, 25) then
-	    player.nearest_npc = self
+    if self:detect(player, 25) then -- if player is at least 25 units away from self
+	    player.nearest_npc = self -- nearest npc is self
 	    --print("You are close enough to speak to NPC")
 		local self_x, self_y          = Sprite.get_position(self)
 		local self_width, self_height = Sprite.get_size    (self)
-		if Mouse:is_over(self_x, self_y, self_width, self_height) and Mouse:is_pressed(1) then--if Keyboard:is_pressed(0x0020) then
+		if Keyboard:is_pressed(0x0020) then--if Mouse:is_over(self_x, self_y, self_width, self_height) and Mouse:is_pressed(1) then--
 		    if self.on_talk then self:on_talk(player) end
-			--if self.on_select then self:on_select() end	
+			--if self.on_select then self:on_select() end
 		end
-	elseif  player.nearest_npc == self then
-	    npc_dialogue_box:hide()	
+	elseif player.nearest_npc == self then
+	    dialogue_box:hide()	
 	end
 end
 function NPC:draw_all()
@@ -416,14 +407,15 @@ if dokun then
 	local npc
     for i = 0, NPC.factory:get_size() do
 	    npc = NPC.factory:get_object(i)
-		if npc then
+		if is_npc(npc) then
 		    self_width, self_height = Sprite.get_size(npc)
 		    self_x, self_y = Sprite.get_position(npc)
-		    npc:select_all()
-			if not npc_dialogue_box:is_visible() then -- if dialogue_box is not visible 
+			----------------------------------------------
+			npc:select_all()
+			if not dialogue_box:is_visible() then -- if dialogue_box is not visible 
 			    npc:roam(200, 600) -- npc is free to roam about
 			end
-		    npc:draw()
+		    npc:draw() -- draw npc
 		end
 	end
 end

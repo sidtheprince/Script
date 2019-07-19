@@ -21,15 +21,15 @@ citizen_paper = Item:new("Citizen Papers")
 citizen_paper:set_require(1)
 citizen_paper:set_description("Proof of Citizenship in the Doll World") 
 citizen_paper:set_tradeable(false)
-king:set_reward(1, citizen_paper)
+king:set_reward(1, citizen_paper) -- set reward for self.quest[1]
 ------------------
 -- set chat options
 king:set_options("Talk, Quest, Story, Leave") -- options are set and stored in order
 ------------------
 function king:on_select(player)
-    -- global quests (from other NPC)
+    -- global quests (from other NPCs)
     if get_quest_by_name("The Doll King"):in_progress() then
-		if is_npc( get_quest_by_name("The Doll King"):get_target() ) then
+		if is_npc( get_quest_by_name("The Doll King"):get_target() ) then --if quest_target is an npc
 		    -- king is target
             if get_quest_by_name("The Doll King"):get_target() == self then
 				    -- update status : Completed
@@ -79,14 +79,16 @@ function king:on_select(player)
 			if is_monster(quest:get_target()) then    
 				if quest:get_target().slain == quest:get_target().kill_limit then
 				    -- update status(quest)
-				    quest:set_status(3)			
+					quest:set_status(3)	
+					print("Quest complete!")		
 			    end
 			end
 			-- (Item) as quest target
 			if is_item(quest:get_target()) then
 				if quest:get_target().received == quest:get_target().obtain_limit then
 				    -- update status(quest)
-				    quest:set_status(3)
+					quest:set_status(3)
+					print("Quest complete!")
 			    end			
 			end
 		end

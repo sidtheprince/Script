@@ -15,98 +15,268 @@ portrait:set_padding(0)
 portrait:set_margin(0)
 portrait:set_
 ]]--
-function create_ui()
+function create_ui() -- for player to interact with
 --==========================================
 -- health_bar
 health_bar = Progressbar:new()
 health_bar:set_foreground_color(255, 51, 51)--, 255)
+health_bar:set_background_color(100, 100, 100)
 health_bar:set_outline(true)
 health_bar:set_outline_width(1.0)
+health_bar:set_label(Label:new()) health_bar:get_label():set_alignment("center")--hp_bar has a label
+-- mini health_bar
+health_bar_mini = Progressbar:new()
+health_bar_mini:set_foreground_color(255, 51, 51) --comeback to this later
+-- HP_label
+HP_label = Label:new()
+HP_label:set_string("HP")
+HP_label:set_color(health_bar:get_foreground_color())
 -- mana_bar
 mana_bar = Progressbar:new()
 mana_bar:set_foreground_color(0, 128, 255)
+mana_bar:set_background_color(100, 100, 100)
 mana_bar:set_outline(true)
 mana_bar:set_outline_width(1.0)
+mana_bar:set_label(Label:new()) mana_bar:get_label():set_alignment("center")--mp_bar has a label
+-- MP_label
+MP_label = Label:new()
+MP_label:set_string("MP")
+MP_label:set_color(mana_bar:get_foreground_color())
 -- exp_bar
 exp_bar = Progressbar:new()
 exp_bar:set_foreground_color(153, 51, 255) --exp_bar:set_size(sprite_width, 10)
+exp_bar:set_background_color(100, 100, 100)
 exp_bar:set_outline(true)
 exp_bar:set_outline_width(1.0)
-
+exp_bar:set_label(Label:new())--exp_bar has a label  
+exp_bar:get_label():set_alignment("center")--never use label:set_parent() (label does not with with parents)
+-- XP_label
+XP_label = Label:new()
+XP_label:set_string("XP")
+XP_label:set_color(exp_bar:get_foreground_color())
 --==========================================
--- exp_text_display
-exp_label = Label:new()
---exp_label:set_parent(exp_bar) -- label will be attached to exp_bar and move with the exp_bar
+-- level_label
+level_label = Label:new()
+--==========================================
+-- system label (for messages)
+-- system label 1 and 2 display the engine status
+system_label  = Label:new()
+system2_label = Label:new()
+--system2_label:set_scale(0.5, 0.5)--text does not show after scaling for some reason
+-- system label 3 displays game events and messages...
+system3_label = Label:new()
+system3_label:set_string("...")
+ -- replace "print" function
+--print = function(text) system3_label:set_string(text) end
+--==========================================
+-- player_portrait
+-- :set_position(10, window:get_client_height()-50)
+--==========================================
+-- dialogue_box
+dialogue_box = Widget:new()
+dialogue_box:set_size(250, 100)
+dialogue_box:set_position((window:get_client_width() - window:get_client_height()) / 2, window:get_client_height()-300) --height=450
+dialogue_box:set_color(14, 19, 29, 255)--(160, 160, 160, 255)
+dialogue_box:set_outline(true)
+dialogue_box:set_outline_color(32, 32, 32)
+dialogue_box:set_gradient(true)
+-- dialogue_box for NPC
+dialogue_box:set_visible(false)
+-- set empty image
+dialogue_box:set_image(Image:new())
+--dialogue_box:get_image():
+-- set empty label
+dialogue_box:set_label(Label:new()) --label is automatically drawn when box is drawn
+--dialogue_box:get_label():
+--dialogue_box:get_label():set_font(Font:new("font/Lazy.ttf"))
+--dialogue_box:get_label():set_position(0,0)
+--print("Label's parent: ",dialogue_box:get_label():get_parent())-- has no parent
+--dialogue_box:get_label():set_parent(dialogue_box) -- set parent
+--dialogue_box:get_label():
+--dialogue_box:get_label():
+--==========================================
 -- bag_icon
 bag_icon = Image:new("ui/bag1_64x64.png")
+-- bag_slots (but in GUI form)
+bag_slots = {}--ordinary table--   bag_slots=Widget:new() bag_slots:set_size(32 *Bag:get_maximum_slots(), 32) --10each
+for i=1, Bag:get_maximum_slots() do
+	bag_slots[i] = Widget:new()
+	bag_slots[i]:set_size(32, 32)--each slot is 32x32
+	bag_slots[i]:set_image(Image:new())--create and set empty image for each bag_slots
+	bag_slots[i]:get_image():set_alignment("center")-- image will be placed at center of bag_slot[i]
+	bag_slots[i]:set_label(Label:new())  bag_slots[i]:get_label():set_string(tostring(0)) bag_slots[i]:get_label():hide()--set label to display quantity of an item?--hide label by default (unless an item is added)
+	if i ~= 1 then--if i is nor equal to 1 (excluding the first bag_slot) 
+		bag_slots[i].prev_slot = bag_slots[i - 1] --save previous slots
+	end
+end
+-- bag_toggle_coroutine
+bag_toggle = function()
+	for i =1, #bag_slots do
+		if bag_slots[i]:is_visible() then bag_slots[i]:hide() end
+	end	
+	coroutine.yield()
+	for i =1, #bag_slots do
+	    if not bag_slots[i]:is_visible() then bag_slots[i]:show() end
+	end
+end
+bag_toggle_co = coroutine.create(bag_toggle) --add function to coroutine
+--    for i=1, #Bag.slots do --depending on number of items in bag.slots-- make sure item image is loaded first
+--        local item = Bag.slots[i]
+--        if Sprite.get_texture(item):is_texture() then print(item:get_name().."'s texture is valid.'")
+--        bag_slots[i]:get_image():copy_texture(Sprite.get_texture(item)) end
+--    end
+empty_texture = Texture:new() -- always keep this texture empty. NEVER fill it with any data!
+--empty_texture:set_size(32, 32)--the default texture size is 32x32 so no need to set it--set size to be same as bag_slots[x]?
+--empty_texture:set_color(64, 64, 64, 255)-- unable to set_color on pure Texture--set size to be same as bag_slots[x]?
+-- gold 
+gold_box = Widget:new()
+gold_box:set_size(50, 32)
+gold_box:set_label(Label:new()) gold_box:get_label():set_string(tostring(0))
+gold_box:set_image(Image:new())
+if Sprite.get_texture(gold):is_texture() then gold_box:get_image():copy_texture(Sprite.get_texture(gold)) end
+gold_box:get_image():set_alignment("center")
+--==========================================
+-- tooltip --default
+tooltip = Widget:new()
+tooltip:set_color(64, 64, 64, 255)
+tooltip:set_label(Label:new())
+tooltip:get_label():get_alignment("center")
+--tooltip:get_label():set_string()
+tooltip:set_visible(false)--hide by default
+tooltip_toggle = function(bag)
+	if not bag then bag = Bag end
+	local item, item_x, item_y, item_width, item_height
+	for i=1, bag:get_maximum_slots() do
+		item = bag.slots[i] -- get item from bag.slots
+		if is_item(item) then -- if item is valid    
+			item_x, item_y          = bag_slots[item:get_slot()]:get_position()--get bag_slot's rect
+			item_width, item_height = bag_slots[item:get_slot()]:get_size()
+
+			if Sprite.get_texture(item):get_file() == bag_slots[item:get_slot()]:get_image():get_file() then
+			    --print(item:get_name().."'s filename matches item in bag_slots "..item:get_slot())
+			end
+	    
+		    if Mouse:is_over(item_x, item_y, item_width, item_height) then
+			    tooltip:get_label():set_string(item:get_name())
+			    tooltip:show()
+			    --print("Mouse is over "..item:get_name())--for debug purposes
+		    else
+			    tooltip:hide()	
+			end	
+	   end
+	end
+end
+--==========================================
+--==========================================
 end
 
 function update_ui()
+	-- level_label
+	level_label:set_position(10, window:get_client_height()-25)
+	level_label:set_string("LV "..tostring(player:get_level()))
+	level_label:draw()
     -- health_bar
 	local sprite_x, sprite_y          = Sprite.get_position(player)
 	local sprite_width, sprite_height = Sprite.get_size    (player)
+	HP_label:set_position(health_bar:get_x()-25, window:get_client_height()-25)
+	HP_label:draw()
 	-- size, position, range, and value may change so keep in loop (everything must be set before drawing)
-	health_bar:set_size(sprite_width, 5)
-    health_bar:set_position(sprite_x, sprite_height + sprite_y)
+	health_bar:set_size(200, 20)--health_bar:set_size(sprite_width, 5)
+    health_bar:set_position(100, window:get_client_height() - 30)--health_bar:set_position(sprite_x, sprite_height + sprite_y)--health_bar will go under the player's feet
 	health_bar:set_range(0, player:get_maximum_health())--print(health_bar:get_range())
 	health_bar:set_value(player:get_health())
+	health_bar:get_label():set_string(tostring(player:get_health()))
 	health_bar:draw()
-	-- menu_bar
+	-- health_bar_mini -- does not need a label
+	health_bar_mini:set_size(sprite_width, 5)
+	health_bar_mini:set_position(sprite_x, sprite_height + sprite_y)--health_bar will go underneath the player's feet
+	health_bar_mini:set_range(0, player:get_maximum_health())
+	health_bar_mini:set_value(player:get_health())
+	health_bar_mini:draw()
+	-- mana_bar
 	local health_bar_x, health_bar_y          = health_bar:get_position()
 	local health_bar_width, health_bar_height = health_bar:get_size    ()
+	MP_label:set_position(mana_bar:get_x()-25, window:get_client_height()-25)
+	MP_label:draw()
 	-- size, position, range, and value may change so keep in loop (everything must be set before drawing)
-	mana_bar:set_size(sprite_width, 5)
-    mana_bar:set_position(sprite_x, health_bar_y + health_bar_height + 1) -- spacing is 1
+	mana_bar:set_size(200, 20)--mana_bar:set_size(sprite_width, 5)
+    mana_bar:set_position((health_bar:get_x() + health_bar_width + 30), health_bar_y)--mana_bar:set_position(sprite_x, health_bar_y + health_bar_height + 1) -- spacing is 1
 	mana_bar:set_range(0, player:get_maximum_mana())--print(mana_bar:get_range())
-    mana_bar:set_value(player:get_mana())
-	--mana_bar:draw() --remove comment to draw manabar
+	mana_bar:set_value(player:get_mana())
+	mana_bar:get_label():set_string(tostring(player:get_mana()))
+	mana_bar:draw() --remove comment to draw manabar
     -- exp_bar
 	local mana_bar_x, mana_bar_y          = mana_bar:get_position()
 	local mana_bar_width, mana_bar_height = mana_bar:get_size    ()
 	local current_exp              = player:get_exp      ()
 	local exp_to_next_level        = player:get_exp_table(player:get_level() + 1)
+	XP_label:set_position(exp_bar:get_x()-25, window:get_client_height()-25)
+	XP_label:draw()
 	--print("Current level: ", player:get_level ())
 	--print("Current XP: ", player:get_exp      ())
 	--print("XP to next level: ", player:get_exp_table(player:get_level() + 1))
 	-- size, position, range, and value may change so keep in loop (everything must be set before drawing)
-	exp_bar:set_size(sprite_width, 5)
-    exp_bar:set_position(sprite_x, mana_bar_y + mana_bar_height)
-	exp_bar:set_range(current_exp, exp_to_next_level) -- tostring(get_exp_percentage(current_exp, exp_to_next_level))
-    exp_bar:set_value(current_exp) --expbar:reset()
-	--exp_bar:draw() --remove comment to draw expbar
-	-- exp_label
-	exp_label:set_position(0, window:get_client_height()-50)
-	exp_label:set_string(tostring(current_exp.." / "..exp_to_next_level) )
-	exp_label:draw()
+	exp_bar:set_size(200, 20)--exp_bar:set_size(sprite_width, 5)
+    exp_bar:set_position(mana_bar:get_x() + mana_bar:get_width() + 30, mana_bar_y)--exp_bar:set_position(sprite_x, mana_bar_y + mana_bar_height)--uncomment only if placed underneath mana_bar
+	exp_bar:set_range(current_exp, exp_to_next_level)  tostring(get_exp_percentage(current_exp, exp_to_next_level))
+	exp_bar:set_value(current_exp) --expbar:reset()
+	exp_bar:get_label():set_string(tostring(current_exp.."/"..exp_to_next_level))--.." ("..tostring(get_exp_percentage(current_exp, exp_to_next_level).."%)")) --also prints current exp in percentage form
+	exp_bar:draw() --remove comment to draw expbar
+	--===============================================================
+	-- system label 1
+	--system_label:set_position(10, window:get_client_height()-50)
+	--system_label:set_string("Status: ")
+	--system_label:draw()
+	-- system label 2
+	--system2_label:set_position(system_label:get_x() + 80, system_label:get_y())--(system_label:get_x() + system_label:get_width(), system_label:get_y())--label:get_width, label:get_height both crashes the engine for some reason
+	--if DOKUN_STATUS then system2_label:set_color(127,255,0) system2_label:set_string("Online") else system2_label:set_color(255, 51, 51) system2_label:set_string("Offline") end
+	--system2_label:draw()
+	--===============================================================
 	-- bag_icon
 	local bag_icon_x, bag_icon_y          = bag_icon:get_position()
 	local bag_icon_width, bag_icon_height = bag_icon:get_size    ()
 	if Mouse:is_over(bag_icon_x, bag_icon_y, bag_icon_width, bag_icon_height) then
-	    window:set_cursor(3)
-	else window:set_cursor(0)
+		if Mouse:is_pressed(1) then  
+			if coroutine.status(bag_toggle_co) == "dead" then bag_toggle_co = coroutine.create(bag_toggle) end
+			if coroutine.status(bag_toggle_co) =="suspended" then coroutine.resume(bag_toggle_co) end--bag_toggle()
+		end
     end	
 	bag_icon:set_position(window:get_client_width()-50, window:get_client_height()-50)
 	bag_icon:draw()	
-	--[[
-	local bag_icon_x, bag_icon_y = bag_icon:get_position()
-	local bag_icon_width, bag_icon_height = bag_icon:get_size()
-	if Mouse:is_over(bag_icon_x, bag_icon_y, bag_icon_width, bag_icon_height) then
-	    if Mouse:is_pressed(1) then
-	      print("Bag icon pressed")
-		if not Bag.ui:is_visible() then
-	    Bag:open()
-		else 
-		Bag:close()
-		end
-	    end
+	--===============================================================
+	-- bag_slots
+	bag_slots[1]:set_position((exp_bar:get_x() + exp_bar:get_width()+bag_slots[1]:get_width()), bag_icon:get_y() + 15)--((exp_bar:get_x() + exp_bar:get_width()) + (bag_slots[1]:get_width() * 4), bag_icon:get_y() + 15)-- set first bag_slot position which will decide where the rest of the slots go
+	for i=1, #bag_slots do
+		if i ~= 1 then local prev = bag_slots[i].prev_slot bag_slots[i]:set_position((prev:get_x()+prev:get_width())+1, prev:get_y()) end --exclude first bag_slot : (bag_slot[1])
+	    bag_slots[i]:draw()--draw slots
 	end
-	--Bag.ui:draw  ()
-	]]--
-
+	--===============================================================	
+	-- gold_box
+	gold_box:get_label():set_string(tostring(Bag.gold))
+	gold_box:set_position(bag_slots[10]:get_x()+bag_slots[10]:get_width()+2, bag_slots[1]:get_y())--((bag_slots[1]:get_x()-gold_box:get_width())-1, bag_slots[1]:get_y())
+	gold_box:draw()
+	--===============================================================
+	-- tooltip
+	--tooltip:show()--only show if mouse_over object
+	tooltip:get_label():set_string("Tooltip")
+	tooltip:set_size(10 * string.len(tooltip:get_label():get_string()), 16)
+	tooltip:set_position(500, 500)
+	tooltip_toggle()
+	tooltip:draw()
+	--===============================================================	
+	-- dialogue_box  : update -- work on scrolling text and so on ...
+	dialogue_box:set_size(250, 100)
+    dialogue_box:set_position((window:get_client_width() - window:get_client_height()) / 2, 450) --height=450
+	--print("Dialogue Box position: ", dialogue_box:get_position())
+	-- dialogue_box : image update
+	--print("Portrait image position: ",dialogue_box:get_image():get_position())
+	-- dialogue_box : label update - dialogue_box:get_label()
+	-- draw dialogue_box
+	dialogue_box:draw()-- draw dialogue_box as long as its visible
 end
 
 
-mini_map = Widget:new() -- a customizable gui with no limitation
+--mini_map = Widget:new() -- a customizable gui with no limitation
 --[[
 minimap:set_shape("CIRCLE") -- literally a circle
 minimap:set_size() -- how big or small s the circle?
@@ -223,7 +393,7 @@ if dokun then
     gui_factory = Factory:new()
 end
 
-if (dokun) then
+if dokun then
     function GUI:is_gui()
 	    if type(self) ~= "table" then
 		    return false
