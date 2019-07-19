@@ -289,7 +289,9 @@ function Item:delete(amount, bag) -- Delete an item in your bag.
             if bag.slots[i] == self then -- The item is found in bag.
                 bag.slots[i] = nil--set slot where item was to nil --table.remove(bag.slots, i) -- Remove item from Bag, shifting elements up.--WARNING:Shifting items up-a-slot is a bad idea! Instead delete it from its current slot and when adding a new item, place it in the first available slot (that is nil)
                 -- dokun graphical stuff ... because of the item shifting up the slot, the image on its old_slot is not updated!!!!!!
-                if dokun then if bag_slots and empty_texture then bag_slots[i]:get_image():copy_texture(empty_texture) end end
+                if dokun then if bag_slots and empty_texture then bag_slots[i]:get_image():copy_texture(empty_texture) 
+                    bag_slots[i]:get_label():set_string("") -- clear string from bag_slots[i].label
+                end end
                 break
             end
         end
