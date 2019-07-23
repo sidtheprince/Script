@@ -1,4 +1,4 @@
-if (dokun) then
+if dokun then
 --[[
     portrait = Widget:new()
 
@@ -27,9 +27,9 @@ health_bar:set_label(Label:new()) health_bar:get_label():set_alignment("center")
 -- mini health_bar
 health_bar_mini = Progressbar:new()
 health_bar_mini:set_foreground_color(255, 51, 51) --comeback to this later
--- HP_label
+-- HP_label 
 HP_label = Label:new()
-HP_label:set_string("HP")
+HP_label:set_string("HP") -- causes crash
 HP_label:set_color(health_bar:get_foreground_color())
 -- mana_bar
 mana_bar = Progressbar:new()
@@ -60,12 +60,12 @@ level_label = Label:new()
 --==========================================
 -- system label (for messages)
 -- system label 1 and 2 display the engine status
-system_label  = Label:new()
-system2_label = Label:new()
+--system_label  = Label:new()
+--system2_label = Label:new()
 --system2_label:set_scale(0.5, 0.5)--text does not show after scaling for some reason
 -- system label 3 displays game events and messages...
-system3_label = Label:new()
-system3_label:set_string("...")
+--system3_label = Label:new()
+--system3_label:set_string("...")
  -- replace "print" function
 --print = function(text) system3_label:set_string(text) end
 --==========================================
@@ -169,7 +169,7 @@ end
 --==========================================
 end
 
-function update_ui()
+function update_ui()	
 	-- level_label
 	level_label:set_position(10, window:get_client_height()-25)
 	level_label:set_string("LV "..tostring(player:get_level()))
@@ -386,7 +386,7 @@ icon_bar:add_icon(icon)
 ]]--
 
 end
-
+--[[
 -- gui_factory
 if dokun then
     gui_factory = Factory:new()
@@ -413,3 +413,4 @@ function ui_event_handler()
 		end
 	end
 end
+]]--

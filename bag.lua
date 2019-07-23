@@ -56,7 +56,7 @@ end
 function Bag:insert( item, amount ) -- new!
     if not amount then amount = 1 end
 	-- gold (or any currency)
-	if string.find(item:get_type(), MONEY) then
+	if string.find(item:get_type(), nocase("currency")) then
 	    self.gold = self.gold + amount
 		return true
 	end
@@ -80,7 +80,7 @@ function Bag:insert( item, amount ) -- new!
 					-- increase quantity (by certain amount)
 					item:set_quantity(item:get_quantity() + amount)--no need to add item image to slot if it was in bag previously and only the quantity needs to be increased
 					-- dokun graphical stuff ...
-					if dokun then bag_slots[item:get_slot(self)]:get_label():set_string(tostring(item:get_quantity())) bag_slots[item:get_slot(self)]:get_label():show() end--set quantity as bag_slots[item:get_slot(self)].label's string
+					if dokun then if bag_slots then bag_slots[item:get_slot(self)]:get_label():set_string(tostring(item:get_quantity())) bag_slots[item:get_slot(self)]:get_label():show() end end--set quantity as bag_slots[item:get_slot(self)].label's string
 					return true
 				end
 				-- not previously in bag
@@ -90,7 +90,7 @@ function Bag:insert( item, amount ) -- new!
 				    -- increase quantity (by certain amount)
 					item:set_quantity(item:get_quantity() + amount)--add the item image to slot as it has not been in the bag previously
 					-- dokun graphical stuff ...
-					if dokun then
+					if dokun and bag_slots then
 						bag_slots[item:get_slot(self)]:get_label():set_string(tostring(item:get_quantity())) bag_slots[item:get_slot(self)]:get_label():show()--set quantity as bag_slots[item:get_slot(self)].label's string
 						if Sprite.get_texture(item):is_texture() then    bag_slots[item:get_slot(self)]:get_image():copy_texture(Sprite.get_texture(item)) end--if the item's texture_data is not nullptr, bag_slot will copy its texture
 					end					
@@ -106,7 +106,7 @@ function Bag:insert( item, amount ) -- new!
 					-- increase parent quantity
 					parent:set_quantity(parent:get_quantity() + amount)--no need to add item image to slot if it was in bag previously and only the quantity needs to be increased
 					-- dokun graphical stuff ...
-					if dokun then bag_slots[parent:get_slot(self)]:get_label():set_string(tostring(parent:get_quantity())) bag_slots[parent:get_slot(self)]:get_label():show() end--set quantity as bag_slots[parent:get_slot(self)].label's string
+					if dokun then if bag_slots then bag_slots[parent:get_slot(self)]:get_label():set_string(tostring(parent:get_quantity())) bag_slots[parent:get_slot(self)]:get_label():show() end end--set quantity as bag_slots[parent:get_slot(self)].label's string
 					return true					
 				end						
 			    -- was not previously in the bag
@@ -116,7 +116,7 @@ function Bag:insert( item, amount ) -- new!
 					-- increase parent quantity (by certain amount)
 					parent:set_quantity( parent:get_quantity() + amount )--add the item image to slot as it has not been in the bag previously
 					-- dokun graphical stuff ...
-					if dokun then
+					if dokun and bag_slots then
 						bag_slots[parent:get_slot(self)]:get_label():set_string(tostring(parent:get_quantity())) bag_slots[parent:get_slot(self)]:get_label():show()--set quantity as bag_slots[parent:get_slot(self)].label's string
 						if Sprite.get_texture(parent):is_texture() then    bag_slots[parent:get_slot(self)]:get_image():copy_texture(Sprite.get_texture(parent)) end--if the item's texture_data is not nullptr, bag_slot will copy its texture
 					end
@@ -137,7 +137,7 @@ function Bag:insert( item, amount ) -- new!
 				-- increase quantity (only by 1)
 				item:set_quantity(item:get_quantity() + 1)
 				-- dokun graphical stuff ...
-				if dokun then
+				if dokun and bag_slots then
 					bag_slots[item:get_slot(self)]:get_label():set_string(tostring(item:get_quantity())) bag_slots[item:get_slot(self)]:get_label():show()--set quantity as bag_slots[item:get_slot(self)].label's string
 					if Sprite.get_texture(item):is_texture() then    bag_slots[item:get_slot(self)]:get_image():copy_texture(Sprite.get_texture(item)) end--if the item's texture_data is not nullptr, bag_slot will copy its texture
 				end

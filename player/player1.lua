@@ -109,7 +109,17 @@ if dokun then
 	   -- follow target
 	   
 	end
-	
+	if window:is_focused() then
+        -- initiate attack on monster
+        if Keyboard:is_pressed(KEY_SPACE) == true then
+            for m=1, Monster.factory:get_size() do 
+                monst = Monster.factory:get_object(m)
+                if is_monster(monst) then
+                    if monst:detect(player, 20) then player:hit(monst) end
+                end
+            end
+		end  
+	end		
     player:on_basic_attack()
 	player:on_item_use()
 	player:on_item_equipped()
@@ -144,7 +154,7 @@ if dokun then
 end	
 end
 
-function player:on_basic_attack()
+function player:on_basic_attack()	
     if player:has_target() then player:hit(self:get_target()) end --player will attack its target with weapon hitpower
 end
 function player:on_item_equipped()

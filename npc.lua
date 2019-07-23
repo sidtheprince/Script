@@ -95,11 +95,11 @@ end
 function NPC:opend(text) -- opens the dialogue box
 if dokun then
 	-- add image to dialogue_box (NPC portrait)(copies NPC's texture)
-	if type(self.filename) == "string" then   dialogue_box:get_image():copy_texture(Sprite.get_texture(self)) end -- can always access image via: dialogue_box:get_image() | don't load, instead copy texture
+	if dialogue_box then if type(self.filename) == "string" then   dialogue_box:get_image():copy_texture(Sprite.get_texture(self)) end end-- can always access image via: dialogue_box:get_image() | don't load, instead copy texture
 	-- add label to dialogue_box -- may give an error: "GUI has no parent"
-	if type(text) == "string" then dialogue_box:get_label():set_string("   "..self:get_name()..": "..text) end--set_string(self:get_name()..": "..text) end--(text) end
+	if dialogue_box then if type(text) == "string" then dialogue_box:get_label():set_string("   "..self:get_name()..": "..text) end end--set_string(self:get_name()..": "..text) end--(text) end
 	-- show dialogue_box
-	dialogue_box:show()
+	if dialogue_box then dialogue_box:show() end
 	-- prevent player from moving while dialogue_box is open
 end
 end	
@@ -397,7 +397,7 @@ function NPC:select_all()
 			--if self.on_select then self:on_select() end
 		end
 	elseif player.nearest_npc == self then
-	    dialogue_box:hide()	
+	    if dialogue_box then dialogue_box:hide() end	
 	end
 end
 function NPC:draw_all()
@@ -412,9 +412,11 @@ if dokun then
 		    self_x, self_y = Sprite.get_position(npc)
 			----------------------------------------------
 			npc:select_all()
-			if not dialogue_box:is_visible() then -- if dialogue_box is not visible 
-			    npc:roam(200, 600) -- npc is free to roam about
-			end
+			if dialogue_box then 
+				if not dialogue_box:is_visible() then -- if dialogue_box is not visible 
+			        npc:roam(200, 600) -- npc is free to roam about
+			    end
+		    end
 		    npc:draw() -- draw npc
 		end
 	end

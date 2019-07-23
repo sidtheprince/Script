@@ -154,10 +154,10 @@ function Item:swap(slot_num) -- Switch slots with another item in the bag.
     if self:in_bag() then
         -- Slot is empty.
         if Bag.slots[slot_num] == nil then
-            if dokun then bag_slots[self:get_slot()]:get_image():copy_texture(empty_texture) end-- Empty texture on old slot
+            if dokun then if bag_slots then bag_slots[self:get_slot()]:get_image():copy_texture(empty_texture) end end-- Empty texture on old slot
             Bag.slots[self:get_slot()] = nil -- Empty old slot. 
             Bag.slots[slot_num] = self -- Fill new slot.
-            if dokun then if Sprite.get_texture(self):is_texture() then bag_slots[self:get_slot()]:get_image():copy_texture(Sprite.get_texture(self)) end end -- File self.texture on new slot
+            if dokun then if bag_slots then if Sprite.get_texture(self):is_texture() then bag_slots[self:get_slot()]:get_image():copy_texture(Sprite.get_texture(self)) end end end-- File self.texture on new slot
         else
             -- Slot is taken.  
             Bag.slots[self:get_slot()] = Bag.slots[slot_num] -- Move the other item from its slot to self's slot.
@@ -268,14 +268,14 @@ function Item:delete(amount, bag) -- Delete an item in your bag.
     if not self:is_copy() or not self:is_stackable() then -- original or non-stackable
         if self:get_quantity() > 0 then self:set_quantity( self:get_quantity() - amount ) --reduce the quantity
         -- dokun graphical stuff
-        if dokun then bag_slots[self:get_slot(bag)]:get_label():set_string(tostring(self:get_quantity())) end--set quantity label
+        if dokun then if bag_slots then bag_slots[self:get_slot(bag)]:get_label():set_string(tostring(self:get_quantity())) end end--set quantity label
         end
     elseif self:is_copy() and self:is_stackable() then -- both a copy and stackable
         -- reduce quantity of parent if stackable copy e.g potion:new()
         local parent = self:get_parent()
         if self:get_parent():get_quantity() > 0 then self:get_parent():set_quantity(self:get_parent():get_quantity() - amount) 
         -- dokun graphical stuff
-        if dokun then bag_slots[parent:get_slot(bag)]:get_label():set_string(tostring(parent:get_quantity())) end--set quantity label
+        if dokun then if bag_slots then bag_slots[parent:get_slot(bag)]:get_label():set_string(tostring(parent:get_quantity())) end end--set quantity label
         end
 	end                                                                
   
@@ -289,9 +289,7 @@ function Item:delete(amount, bag) -- Delete an item in your bag.
             if bag.slots[i] == self then -- The item is found in bag.
                 bag.slots[i] = nil--set slot where item was to nil --table.remove(bag.slots, i) -- Remove item from Bag, shifting elements up.--WARNING:Shifting items up-a-slot is a bad idea! Instead delete it from its current slot and when adding a new item, place it in the first available slot (that is nil)
                 -- dokun graphical stuff ... because of the item shifting up the slot, the image on its old_slot is not updated!!!!!!
-                if dokun then if bag_slots and empty_texture then bag_slots[i]:get_image():copy_texture(empty_texture) 
-                    bag_slots[i]:get_label():set_string("") -- clear string from bag_slots[i].label
-                end end
+                if dokun then if bag_slots and empty_texture then bag_slots[i]:get_image():copy_texture(empty_texture) bag_slots[i]:get_label():set_string("") end end --clear bag_slots[i].image texture with an empty one-- clear string from bag_slots[i].label
                 break
             end
         end

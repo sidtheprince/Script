@@ -1,7 +1,7 @@
 -- Game core functions will be powered by the Dokun Engine.
-if DOKUN_STATUS ~= true then  -- but dokun has not fully initialised
-    print("Dokun failed to start.")
-end
+if dokun then
+dokun:start()--initialize dokun first-- required if building with srdokun and libdokun
+end -- print(DOKUN_STATUS)
 require("global")
 require("system")
 require("input") -- new
@@ -38,7 +38,7 @@ window = Window:new()
 window:create("Script", WINDOW_WIDTH, WINDOW_HEIGHT)
 window:show()
 
-create_ui()
+create_ui() -- can cause crash
 -- level
 --world = Level:new()
 --frame = 0
@@ -47,7 +47,6 @@ create_ui()
 --theme = Music:new("audio/guardia.ogg")
 --theme:set_volume(1)
 --theme:play()
-local monst--print("Press space to attack") 
 --Script.save("potion")
 while window:is_open() do
 -- ======================
@@ -68,19 +67,11 @@ while window:is_open() do
 	-- draw player
 	player:draw()
 	-- draw and update ui
-	update_ui()
+    update_ui() -- can cause crash
+    --fps_counter() -- can cause crash
 -- ======================
     if window:is_focused() then
-        if theme then if theme:is_paused() then theme:play() end end
-        -- initiate attack on monster
-        if Keyboard:is_pressed(KEY_SPACE) == true then
-            for m=1, Monster.factory:get_size() do 
-                monst = Monster.factory:get_object(m)
-                if is_monster(monst) then
-                    if monst:detect(player, 20) then player:hit(monst) end
-                end
-            end
-        end    
+        if theme then if theme:is_paused() then theme:play() end end  
     end
     if not window:is_focused() then
         if theme then theme:pause() end

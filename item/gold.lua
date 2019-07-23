@@ -1,4 +1,4 @@
-gold = Item.new("Dollop", MONEY, 0, "For purchasing items.", 0) -- item representing gold, not actually gold in numbers
+gold = Item.new("Dollop", "Currency", 0, "For purchasing items.", 0) -- item representing gold, not actually gold in numbers
 
 function gold:on_load()
 if dokun then
