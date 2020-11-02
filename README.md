@@ -8,13 +8,13 @@ Though this is a text-based Lua RPG game. I will add graphics to it when I compl
 ```lua
 require "main" -- inside lua
 -- or
-./dokun main.lua -- from the terminal (if using dokun)
+./dokun main.lua # from the terminal (if using dokun)
 ```
 
 # Building:
 Requires <a href="https://github.com/sidtheprince/srdokun">srdokun</a>.
-```lua
-./glue ./srlua main.lua main -- compiles into an executable
+```sh
+./glue ./srlua main.lua main # compiles into an executable
 ```
 
 # More examples:
