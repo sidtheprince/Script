@@ -1,6 +1,6 @@
 ![Script logo](junk/script.png "Script-logo")
 
-```sh
+```
 Though this is a text-based Lua RPG game. I will add graphics to it when I complete the Dokun Engine.
 ```
 
@@ -8,6 +8,8 @@ Though this is a text-based Lua RPG game. I will add graphics to it when I compl
 ```lua
 require "main" -- inside lua
 -- or
+```
+```sh
 ./dokun main.lua # from the terminal (if using dokun)
 ```
 
