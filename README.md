@@ -12,7 +12,7 @@ require "main" -- inside lua
 ```
 
 # Building:
-Requires <a href="https://github.com/sidtheprince/srdokun">srlua</a>.
+Requires <a href="https://github.com/sidtheprince/srdokun">srdokun</a>.
 ```lua
 ./glue ./srlua main.lua main -- compiles into an executable
 ```
