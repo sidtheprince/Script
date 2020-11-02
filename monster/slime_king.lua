@@ -11,6 +11,7 @@ slime_king:set_boss(true)       -- boss monster
 slime_king:set_aggressive(true) -- that is also aggressive
 -- sounds
 slime_king:set_sound("monster/sounds/slime-movement.ogg") -- adds a sound to sound_list--print("Sound of slime_king: ", slime_king:get_sound(1))
+slime_king:set_sound("monster/sounds/slime-death.ogg"   )
 -- speak(index) --index = 1, 2, 3, etc.
 
 -- drops 
@@ -35,10 +36,10 @@ end
 slime_king:load("monster/slime_king32x.png")
 
 function slime_king:on_defeat( player )--change to on_defeat  since self (monster) gets defeated by you (player)
-    if self:is_dead() then	
+	if self:is_dead() then	
 	-- stop noise
-if dokun then	
-	    --self.voice:stop()
+if dokun then
+	    self.voice:stop()
 end	
 	    -- check for quests in player.quest
         player:check(self)

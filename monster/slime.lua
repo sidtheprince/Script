@@ -15,7 +15,6 @@ slime:set_max_instance(20)
 -- drops 
 slime:set_exp_drop(5, 7)
 slime:set_item_drop(potion, 50) -- 50% chance to drop this item
-slime:set_item_drop(sword,  10) -- 20% chance to drop this item
 slime:set_gold_drop(1, 5)
 
 -- skills (abilities)
@@ -26,16 +25,16 @@ slime:set_skill(nil)
 -- set user-defined functions here
 function slime:on_load()
 if dokun then
-	Sprite.set_position(slime, 500, 20)
+	Sprite.set_position(self, math.random(0, 1280), math.random(0, 700))--500, 20)
     -- setup slime healthbar
-    slime.health_bar = Progressbar:new()
-    slime.health_bar:set_foreground_color(255, 51, 51)
-    slime.health_bar:set_outline(true)
-    slime.health_bar:set_outline_width(2.0)	
+    self.health_bar = Progressbar:new()
+    self.health_bar:set_foreground_color(255, 51, 51)
+    self.health_bar:set_outline(true)
+    self.health_bar:set_outline_width(2.0)	
 end	
 end
 -- load sprite (Monster.load will call on_load first)
-slime:load("monster/slime.png")
+slime:load("monster/slime_king.png")
 
 -- on attacking a slime
 function slime:on_attack(player)
@@ -91,4 +90,15 @@ function slime:on_draw()
 	]]--
 	end
 	self:regen(math.random(1), 1) -- regenerates 1 health per second
+end
+-- create some slime clones
+for i=1, 10 do
+    local slime_inst = slime:new()--clones will inherit the slime's attributes
+    slime_inst:load("monster/slime.png")
+    slime_inst:set_hp(100)
+--[[    
+    print("slime copy's name:", slime_inst.name)
+    print("slime copy's level:", slime_inst.level)
+    print("slime copy's health:", slime_inst.health)
+]]--
 end

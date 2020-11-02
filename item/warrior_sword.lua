@@ -1,4 +1,4 @@
-warrior_sword = Item:new("Warrior Sword", EQUIPMENT, 2, "A legendary sword lost in time", 150)
+warrior_sword = Item:new("Warrior Sword", EQUIPMENT, 2, "A legendary sword lost in time", 50)
 warrior_sword:set_subtype( "Smasher" )
 
 function warrior_sword:on_load()

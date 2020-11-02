@@ -16,12 +16,6 @@ dofile("quest/quest4.lua")
 -- set quests
 king:set_quest(get_quest_by_name("A New Citizen")) -- quests are stored in order in self.quest_list
 ------------------
--- set rewards
-citizen_paper = Item:new("Citizen Papers")
-citizen_paper:set_require(1)
-citizen_paper:set_description("Proof of Citizenship in the Doll World") 
-citizen_paper:set_tradeable(false)
-king:set_reward(1, citizen_paper) -- set reward for self.quest[1]
 ------------------
 -- set chat options
 king:set_options("Talk, Quest, Story, Leave") -- options are set and stored in order
@@ -61,6 +55,8 @@ function king:on_select(player)
 						-- start conversation
 						king:talk("For all your training and hard work")
 						king:talk("I'd like to reward you with this...")
+						-- set reward here
+						king:set_reward(1, citizen_paper) -- set reward for self.quest[1]
 						-- get reward
                         --self:give_reward(quest)
 						for _, reward in pairs(quest.reward) do
@@ -93,6 +89,8 @@ function king:on_select(player)
 			end
 		end
 	end
+
+if not dokun then
  -- Options to choose from once
  -- NPC is selected or clicked on
  print("Choose an option: ")
@@ -106,10 +104,14 @@ function king:on_select(player)
  if choice == 2 then self:on_quest(player) end
  if choice == 3 then self:on_story(player) end
  if choice == 4 then self:on_leave(player) end
+end --if not dokun
+if dokun then -- don goes staight to "NPC:talk" that is why the option_list only show up after talking to Don. NPC:talk updates the option_list
+   self:opend(self.option_list) -- sets up options list
+end -- if dokun
 end
 ------------------
 function king:on_talk()
-    self:talk("Welcome to the land of the Dolls. I am King Calibus, ruler of the Doll World.")
+    self:talk("Welcome to the land of the Dolls.\n I am King Calibus, ruler of the Doll World.")
 end
 ------------------
 function king:on_quest(player)
@@ -120,7 +122,7 @@ function king:on_quest(player)
 		return
 	end
     if not self:give_quest(player) then
-	    self:talk("I have no quests.")
+	    self:talk("I have no quests for you right now.")
 	end
 end
 ------------------

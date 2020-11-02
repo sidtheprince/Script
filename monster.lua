@@ -197,8 +197,7 @@ function Monster:drop(victor) -- perfect 99%!!
     if type(exp_gained) ~= "number" then 
         exp_gained = 0
 	end 
-  -- self.exp_drop must be more than 0 
-  -- in order to obtain the exp
+  -- self.exp_drop must be more than 0 in order to obtain the exp
   if exp_gained > 0 then 
    -- give the victor some exp
    victor.exp = victor.exp + exp_gained
@@ -223,8 +222,8 @@ function Monster:drop(victor) -- perfect 99%!!
     if item_drop ~= nil then                          
         -- bag is not full
         if not Bag:is_full() then
-            -- obtain the item (with no collision)
-            Item.obtain(item_drop:new()) -- works with unique+ non-stackable items
+            -- obtain the item copy (with no collision)
+            Item.obtain(item_drop:new()) -- works with unique+ non-stackable items--monsters can only drop copies of original items
         end
         -- bag is full, but an item is stackable
         if Bag:is_full() and item_drop:is_stackable() then
@@ -255,6 +254,8 @@ function Monster:detect(enemy, dist) -- how far enemy has to be to be detected
 	    enemy_x, enemy_y = enemy:get_position()
 	    local self_x, self_y
         self_x, self_y = self:get_position()
+        if not self_x then self_x = 0 self_y = 0 end
+        if not enemy_x then enemy_x = 0 enemy_y = 0 end
 		-- calculate the distance (how far they are from one another)
 	    --local distance = math.sqrt( math.pow(self_x - enemy_x, 2) + math.pow(self_y - enemy_y, 2) ) -- math.pow is deprecated in 5.3 **sighs** (-.-)
 		local distance = math.sqrt(((self_x - enemy_x) * (self_x - enemy_x)) + ((self_y - enemy_y) * (self_y - enemy_y)))
@@ -905,5 +906,5 @@ end
 -- Load items here.
 dofile("monster/slime.lua") 
 dofile("monster/slime_king.lua") 
---dofile("monster/borg.lua") 
+dofile("monster/borg.lua") 
 -----------------------------------

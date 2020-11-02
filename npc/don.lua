@@ -34,7 +34,7 @@ function don:on_select(player)
 	if is_quest(quest) then
 	-- quest log is not in log
 	if not quest:in_log(player) then 
-	    player:set_quest(quest) 
+	    player:set_quest(quest) -- The moment (first time) you select don, a quest will be given to you
 		quest:set_status(2) 
 	end
 	    if quest:in_progress() then
@@ -55,7 +55,7 @@ function don:on_select(player)
     for _, quest in pairs(self.quest) do
 		-- quest in progress
 		if quest:in_progress() then
-			-- (king) as quest target
+			-- (self) as quest target
 			if quest:get_target() == self then
 				-- update status : Completed
 				quest:set_status(3)
@@ -96,7 +96,7 @@ function don:on_select(player)
 			end
 		end
 	end
-	
+if not dokun then	
     print("Choose an option:")
     -- display each option
     for o = 1, #self.option_list do
@@ -107,7 +107,11 @@ function don:on_select(player)
     if choice == 1 then self:on_talk(player) end
     if choice == 2 then self:on_quest(player) end
     if choice == 3 then self:on_story(player) end
-    if choice == 4 then self:on_leave(player) end	
+    if choice == 4 then self:on_leave(player) end
+end	 --if not dokun
+if dokun then
+    self:opend(self.option_list)
+end -- if dokun
 end
 ------------------
 function don:on_talk(player) 
@@ -115,6 +119,10 @@ function don:on_talk(player)
 end
 ------------------
 function don:on_quest(player)
+    if get_quest_by_name("Prove Your Strength"):in_progress() then 
+        self:talk("You still have "..(get_quest_by_name("Prove Your Strength"):get_target().kill_limit - get_quest_by_name("Prove Your Strength"):get_target().slain).." "..get_quest_by_name("Prove Your Strength"):get_target():get_name().."s to defeat\nNow get to it")
+        return
+    end
     if not self:give_quest(player) then
 	    self:talk("I have no quests right now")
 		if get_quest_by_name("The Doll King"):in_progress() then

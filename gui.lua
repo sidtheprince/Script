@@ -17,6 +17,10 @@ portrait:set_
 ]]--
 function create_ui() -- for player to interact with
 --==========================================
+-- custom_font
+fontsm = Font:new()
+fontsm:set_size(0, 18)--16) -- set size before loading
+fontsm:load("font/chi_jyun/chi_jyun.ttf")--("font/Lazy.ttf")
 -- health_bar
 health_bar = Progressbar:new()
 health_bar:set_foreground_color(255, 51, 51)--, 255)
@@ -27,7 +31,7 @@ health_bar:set_label(Label:new()) health_bar:get_label():set_alignment("center")
 -- mini health_bar
 health_bar_mini = Progressbar:new()
 health_bar_mini:set_foreground_color(255, 51, 51) --comeback to this later
--- HP_label 
+-- HP_label
 HP_label = Label:new()
 HP_label:set_string("HP") -- causes crash
 HP_label:set_color(health_bar:get_foreground_color())
@@ -48,7 +52,7 @@ exp_bar:set_foreground_color(153, 51, 255) --exp_bar:set_size(sprite_width, 10)
 exp_bar:set_background_color(100, 100, 100)
 exp_bar:set_outline(true)
 exp_bar:set_outline_width(1.0)
-exp_bar:set_label(Label:new())--exp_bar has a label  
+exp_bar:set_label(Label:new())--exp_bar has a label
 exp_bar:get_label():set_alignment("center")--never use label:set_parent() (label does not with with parents)
 -- XP_label
 XP_label = Label:new()
@@ -72,28 +76,27 @@ level_label = Label:new()
 -- player_portrait
 -- :set_position(10, window:get_client_height()-50)
 --==========================================
--- dialogue_box
+-- dialogue_box (for NPC)
 dialogue_box = Widget:new()
-dialogue_box:set_size(250, 100)
-dialogue_box:set_position((window:get_client_width() - window:get_client_height()) / 2, window:get_client_height()-300) --height=450
-dialogue_box:set_color(14, 19, 29, 255)--(160, 160, 160, 255)
+dialogue_box:set_size(500, 100)--(250, 100)
+dialogue_box:set_color(14, 19, 29, 255)
 dialogue_box:set_outline(true)
 dialogue_box:set_outline_color(32, 32, 32)
 dialogue_box:set_gradient(true)
--- dialogue_box for NPC
-dialogue_box:set_visible(false)
+dialogue_box:set_visible(false)-- hidden by default
 -- set empty image
 dialogue_box:set_image(Image:new())
---dialogue_box:get_image():
+dialogue_box:get_image():set_alignment("right")
 -- set empty label
-dialogue_box:set_label(Label:new()) --label is automatically drawn when box is drawn
+dialogue_box:set_label(Label:new()) --label is automatically drawn when box is drawn --dialogue_box.label:set_font(fontsm) -- crashes the engine -- apparently, setting the font crashes engine
+dialogue_box:get_label():set_relative_position(10, 10)--dialogue_box:get_label():get_relative_y());
 --dialogue_box:get_label():
---dialogue_box:get_label():set_font(Font:new("font/Lazy.ttf"))
---dialogue_box:get_label():set_position(0,0)
---print("Label's parent: ",dialogue_box:get_label():get_parent())-- has no parent
---dialogue_box:get_label():set_parent(dialogue_box) -- set parent
---dialogue_box:get_label():
---dialogue_box:get_label():
+-- add multiple labels
+dialogue_box:set_label_list(Label:new()) --dialogue_box.label1:set_font(dialogue_box:get_label():get_font())-- dialogue_box.label1 -- causes text to not show up
+dialogue_box:set_label_list(Label:new()) --dialogue_box.label2:set_font(dialogue_box:get_label():get_font()) -- dialogue_box.label2 -- causes text to not show up
+dialogue_box:set_label_list(Label:new()) --dialogue_box.label3:set_font(dialogue_box:get_label():get_font()) -- dialogue_box.label3 -- causes text to not show up
+--dialogue_box:set_label_list(Label:new()) --dialogue_box.label4:set_font(dialogue_box:get_label():get_font()) -- dialogue_box.label4 -- causes text to not show up
+--dialogue_box:show() -- should be hidden by default
 --==========================================
 -- bag_icon
 bag_icon = Image:new("ui/bag1_64x64.png")
@@ -105,7 +108,7 @@ for i=1, Bag:get_maximum_slots() do
 	bag_slots[i]:set_image(Image:new())--create and set empty image for each bag_slots
 	bag_slots[i]:get_image():set_alignment("center")-- image will be placed at center of bag_slot[i]
 	bag_slots[i]:set_label(Label:new())  bag_slots[i]:get_label():set_string(tostring(0)) bag_slots[i]:get_label():hide()--set label to display quantity of an item?--hide label by default (unless an item is added)
-	if i ~= 1 then--if i is nor equal to 1 (excluding the first bag_slot) 
+	if i ~= 1 then--if i is nor equal to 1 (excluding the first bag_slot)
 		bag_slots[i].prev_slot = bag_slots[i - 1] --save previous slots
 	end
 end
@@ -113,7 +116,7 @@ end
 bag_toggle = function()
 	for i =1, #bag_slots do
 		if bag_slots[i]:is_visible() then bag_slots[i]:hide() end--hide gold_box as well: gold_box:hide()
-	end	
+	end
 	coroutine.yield()
 	for i =1, #bag_slots do
 	    if not bag_slots[i]:is_visible() then bag_slots[i]:show() end--show gold_box as well: gold_box:show()
@@ -126,10 +129,14 @@ bag_toggle_co = coroutine.create(bag_toggle) --add function to coroutine
 --        bag_slots[i]:get_image():copy_texture(Sprite.get_texture(item)) end
 --    end
 empty_texture = Texture:new() -- always keep this texture empty. NEVER fill it with any data!
---empty_texture:set_size(32, 32)--the default texture size is 32x32 so no need to set it--set size to be same as bag_slots[x]?
---empty_texture:set_color(64, 64, 64, 255)-- unable to set_color on pure Texture--set size to be same as bag_slots[x]?
+empty_sprite = Sprite:new()
+empty_sprite:set_texture(empty_texture)
+empty_sprite:set_color(64, 64, 64, 255)
+
+empty_image = Image:new() -- will be copied by "bag_slots[i]:get_image()" to make it look like an item has disappeared after its been consumed
+empty_image:set_color(bag_slots[1]:get_color()) -- copy the bag_slots[i] base color--print("empty_image size: ", empty_image:get_size()) --size is 0,0 but I guess there's no need to change that except the color
 --==========================================
--- gold_box 
+-- gold_box
 gold_box = Widget:new()
 gold_box:set_size(100, 32)
 gold_box:set_label(Label:new()) gold_box:get_label():set_string(tostring(0))
@@ -149,27 +156,73 @@ tooltip_toggle = function(bag)
 	local item, item_x, item_y, item_width, item_height
 	for i=1, bag:get_maximum_slots() do
 		item = bag.slots[i] -- get item from Bag.slots
-		if is_item(item) then -- if item is valid    
+		if is_item(item) then -- if item is valid
 			item_x, item_y          = bag_slots[item:get_slot()]:get_position()--get bag_slot's rect
 			item_width, item_height = bag_slots[item:get_slot()]:get_size()
 
 			if Mouse:is_over(item_x, item_y, item_width, item_height) then
-				if Sprite.get_texture(item):get_data() == bag_slots[item:get_slot()]:get_image():get_data() then --if the item's texturedata is equal to the bag_slots' texturedata
-				    --print(item:get_name().."'s data matches item in bag_slots "..item:get_slot())	
+				if Sprite.get_texture(item):get_file() == bag_slots[item:get_slot()]:get_image():get_file() then--if Sprite.get_texture(item):get_data() == bag_slots[item:get_slot()]:get_image():get_data() then --if the item's texturedata is equal to the bag_slots' texturedata
+				    --print(item:get_name().."'s data matches item in bag_slots "..item:get_slot())
 				    tooltip:get_label():set_string(item:get_name())
 			        tooltip:show()
 			        --print("Mouse is over "..item:get_name())--for debug purposes
 		        else tooltip:hide()-- hide tooltip--does hide for some reason
-				end		 
+				end
 			end--this end closes the if sprite:texture:filename = bag_slots:filename
 	   end
 	end
 end
+-- tooltip2
+--[[
+tooltip2 = Widget:new()
+tooltip2:set_color(64, 64, 64, 255)
+tooltip:set_label(Label:new())
+tooltip:set_visible(false)--hide by default
+-- item info (on mouse_over item)
+tooltip2:get_label(0):set_string("name: "..item:get_name())
+tooltip2:get_label(1):set_string("number : "..item:get_id())
+tooltip2:get_label(2):set_string("type: "..item:get_type())
+tooltip2:get_label(3):set_string("level Req.: "..item:get_require())
+tooltip2:get_label(4):set_string("usage: "..item:get_usage())
+tooltip2:get_label(5):set_string("effect: "..item:get_effect())
+tooltip2:get_label(6):set_string("price: "..item:get_price())
+tooltip2:get_label(7):set_string("owned: "..item:get_quantity())
+tooltip2:get_label(8):set_string("durability: "..item:get_durability())
+tooltip2:get_label(9):set_string("tradeable: "..item:is_tradeable())
+]]--
+--==========================================
+-- error_box
+error_box = Widget:new()
+error_box:set_title_bar(true)
+--error_box:
+error_box:set_title_bar_button_close(true)
+error_box:set_outline(true)
+error_box:set_size(200, 50)
+error_box:set_position(window:get_client_width()/2, window:get_client_height() / 2)
+-- error_box_label
+error_box_label = Label:new()
+error_box_label:set_font(fontsm)
+error_box_label:set_string("This is an error")
+error_box_label:set_alignment("center")
+--error_box:set_size(error_box_label:get_width()+10, error_box_label:get_height()+10)
+-- error_box_title_label
+error_box_title_label = Label:new()
+error_box_title_label:set_font(fontsm)
+error_box_title_label:set_string("Script")
+error_box:set_title_bar_label(error_box_title_label)
+-- error_box_title_image
+--error_title_image = Image:new("player/naked.png")
+--error_box:set_title_bar_image(error_title_image)
+-- set label and other stuff
+error_box:set_label(error_box_label)
+--error_box:hide()
+--print("Label size: ", error_box_label:get_width(), error_box_label:get_height())
+--==========================================
 --==========================================
 --==========================================
 end
 
-function update_ui()	
+function update_ui()
 	-- level_label
 	level_label:set_position(10, window:get_client_height()-25)
 	level_label:set_string("LV "..tostring(player:get_level()))
@@ -235,13 +288,13 @@ function update_ui()
 	local bag_icon_x, bag_icon_y          = bag_icon:get_position()
 	local bag_icon_width, bag_icon_height = bag_icon:get_size    ()
 	if Mouse:is_over(bag_icon_x, bag_icon_y, bag_icon_width, bag_icon_height) then
-		if Mouse:is_pressed(1) then  
+		if Mouse:is_pressed(1) then
 			if coroutine.status(bag_toggle_co) == "dead" then bag_toggle_co = coroutine.create(bag_toggle) end
 			if coroutine.status(bag_toggle_co) =="suspended" then coroutine.resume(bag_toggle_co) end--bag_toggle()
 		end
-    end	
+    end
 	bag_icon:set_position(window:get_client_width()-50, window:get_client_height()-50)
-	bag_icon:draw()	
+	bag_icon:draw()
 	--===============================================================
 	-- bag_slots
 	bag_slots[1]:set_position((exp_bar:get_x() + exp_bar:get_width()+bag_slots[1]:get_width()), bag_icon:get_y() + 15)--((exp_bar:get_x() + exp_bar:get_width()) + (bag_slots[1]:get_width() * 4), bag_icon:get_y() + 15)-- set first bag_slot position which will decide where the rest of the slots go
@@ -249,7 +302,7 @@ function update_ui()
 		if i ~= 1 then local prev = bag_slots[i].prev_slot bag_slots[i]:set_position((prev:get_x()+prev:get_width())+1, prev:get_y()) end --exclude first bag_slot : (bag_slot[1])
 	    bag_slots[i]:draw()--draw slots
 	end
-	--===============================================================	
+	--===============================================================
 	-- gold_box
 	gold_box:get_label():set_string(tostring(Bag.gold))
 	gold_box:set_position(bag_slots[10]:get_x()+bag_slots[10]:get_width()+2, bag_slots[1]:get_y())--((bag_slots[1]:get_x()-gold_box:get_width())-1, bag_slots[1]:get_y())
@@ -262,16 +315,21 @@ function update_ui()
 	tooltip:set_position(bag_slots[(#bag_slots / 2)]:get_x(), bag_slots[1]:get_y()-bag_slots[1]:get_height())
 	tooltip_toggle()
 	tooltip:draw()
-	--===============================================================	
-	-- dialogue_box  : update -- work on scrolling text and so on ...
-	dialogue_box:set_size(250, 100)
-    dialogue_box:set_position((window:get_client_width() - window:get_client_height()) / 2, 450) --height=450
+	--===============================================================
+	-- dialogue_box  : update -- gotta work on scrolling text and so on ...
+    dialogue_box:set_size(window:get_client_width()-(window:get_client_width()/4), dialogue_box:get_height())
+    dialogue_box:set_position((window:get_client_width() - dialogue_box:get_width()) / 2, window:get_client_height() - 200) --height=450
 	--print("Dialogue Box position: ", dialogue_box:get_position())
 	-- dialogue_box : image update
 	--print("Portrait image position: ",dialogue_box:get_image():get_position())
 	-- dialogue_box : label update - dialogue_box:get_label()
 	-- draw dialogue_box
+	--dialogue_box:get_label():set_position(1300, 1000)--does nothing to a GUI with a parent, use set_relative_position instead
+    --print("Dialogue box position: ", dialogue_box:get_position())
+    --print("Dialogue label position: ", dialogue_box:get_label():get_position())
+    --print("Dialogue label position relative to box: ", dialogue_box:get_label():get_relative_position())
 	dialogue_box:draw()-- draw dialogue_box as long as its visible
+    --===============================================================
 end
 
 
@@ -337,7 +395,7 @@ cross_hair:set_as_image();
 cross_hair:set_alpha(true); -- see through when targeting an enemy
 cx, cy = cross_hair:get_center_position() -- gets the cross_hair gui 's center(radius)
 
-function follow_cross_hair() 
+function follow_cross_hair()
  if on_mousemove() then -- while the mouse is moving
   cross_hair:set_position(mouse:get_x(), mouse:get_y()) -- follow the cross hair
  end

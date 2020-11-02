@@ -20,7 +20,7 @@ function health_potion:on_use(user)
     if not self:in_bag() then print(self:get_name().." is not in bag") return end
     -- health is full
     if user:get_health() == user:get_maximum_health() then
-        print("Your health is full.")
+        print("Your health is full")
 		return 
     end
     -- health is not full

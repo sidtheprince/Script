@@ -14,8 +14,8 @@ function mana_potion:on_use(user)
  if is_item(self) then
  if self:in_bag() then
  -- if mana is full
- if user:get_mana() == user:get_maximum_mana() then
-  print("Your mana is already full");
+ if user:get_mana() >= user:get_maximum_mana() then
+  print("Your mana is full");
   return;
  end
  -- mana is not full

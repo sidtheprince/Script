@@ -24,6 +24,8 @@ Item_mt =
 	__gc    = 
 	function(self) 
 if dokun then
+        --Sprite.get_texture(self):destroy()
+        --Sprite.set_texture(self, nullptr)
 	    Sprite.destroy(self)
 end		
 		print(self:get_name(), "deleted") 
@@ -64,9 +66,9 @@ function Item:new(name, type, require, description, effect)
     ----------------------
     -- make clone function for inst
     item.new = function()
-        local new_item 
+        local new_item -- copy of original item
 if dokun then 
-        new_item = Sprite:new() 
+        new_item = Sprite:new()
 else			
 		new_item = {}
 end
@@ -88,14 +90,14 @@ if dokun then
     return item
 end
 ----------------
-function Item:load(filename)
+function Item:load(filename) -- Sprite.load sets the sprite's texture but only in c++ unfortunately :/
 if dokun then
     local texture = Texture:new()
 	if not texture:load(filename) then
 	    print("Could not open "..filename) 
 	    return false
 	end
-	Sprite.set_texture(self, texture)
+	Sprite.set_texture(self, texture)--self.texture = texture
 end
     if self.on_load then self:on_load() end
     self.filename = filename--save filename as proof that it has been loaded
@@ -289,7 +291,7 @@ function Item:delete(amount, bag) -- Delete an item in your bag.
             if bag.slots[i] == self then -- The item is found in bag.
                 bag.slots[i] = nil--set slot where item was to nil --table.remove(bag.slots, i) -- Remove item from Bag, shifting elements up.--WARNING:Shifting items up-a-slot is a bad idea! Instead delete it from its current slot and when adding a new item, place it in the first available slot (that is nil)
                 -- dokun graphical stuff ... because of the item shifting up the slot, the image on its old_slot is not updated!!!!!!
-                if dokun then if bag_slots and empty_texture then bag_slots[i]:get_image():copy_texture(empty_texture) bag_slots[i]:get_label():set_string("") end end --clear bag_slots[i].image texture with an empty one-- clear string from bag_slots[i].label
+                if dokun then if bag_slots and empty_texture then bag_slots[i]:get_image():copy(empty_image) bag_slots[i]:get_label():set_string("") end end--if dokun then if bag_slots and empty_texture then bag_slots[i]:get_image():copy_texture(empty_texture) bag_slots[i]:get_image():set_color(64, 64, 64, 255) bag_slots[i]:get_label():set_string("") end end --clear bag_slots[i].image texture with an empty one--set bag_slots[i].image color to defaults (0,0,0,0)-- clear string from bag_slots[i].label
                 break
             end
         end
@@ -692,12 +694,20 @@ if dokun then
     for i = 0, Item.factory:get_size() do
         if type(Item.factory:get_object(i)) == "table" then
 	        item = Item.factory:get_object(i)
-			-- obtain items on collision
+	        -- items that are not visible cannot be obtained or drawn and should be ignored
+	        if not Sprite.is_visible(item) then return end
+			-- if item is a copy and its texture is not set
+			if item:is_copy() then
+				--if not item.texture then print(item:get_name().." copy has no texture set") else print(item:get_name().." copy's texture: ", item.texture) end
+				--end --print(item:get_name().." copy's texture"..item.texture)--print(item:get_name().." copy", item, " | parent = ", item:get_parent())
+			end
+			-- obtain items on collision (you should not be able to obtain items that are not visible!)
 			if Sprite.collide(player, item) and not item:is_obtained() then 
 			    item:set_obtained(item:obtain()) 
 			end
 			-- draw items (if not obtained)(or if the item is equipped by a user, draw it on user's body)
 			if not item:is_obtained() or (string.find(item:get_type(), nocase("Equipment")) and player:is_equipped(item)) then --
+                 Sprite.set_visible(item, true)--make sure its visible so it can be drawn
                  item:draw()			
 			end
 		end
@@ -772,9 +782,9 @@ function Item:look_at_mouse() -- rotates to mouse position
 		local a = self_x - mouse_x
 		local b = self_y - mouse_y
         -- get mouse angle
-		mouse_angle = math.atan2(-a, -b) * 180 / math.pi
+		mouse_angle = math.atan(a, -b) * 180 / math.pi -- math.atan2 deprecated in Lua 5.3
   		-- object follow mouse
-		self:rotate(mouse_angle + 180)
+		Sprite.rotate(self, mouse_angle + 180)
 end
 ----------------
 -- Load items here.
@@ -787,6 +797,7 @@ dofile("item/dual_potion.lua")
 
 dofile("item/sword.lua")
 dofile("item/warrior_sword.lua")
+dofile("item/citizen_paper.lua")
 --[[
 [NOTE]: Equipments are non-stackable.
 [NOTE]: Stackable items share the same quantity and non-stackable have their own unique quantity

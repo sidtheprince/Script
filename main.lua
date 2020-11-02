@@ -38,26 +38,44 @@ window = Window:new()
 window:create("Script", WINDOW_WIDTH, WINDOW_HEIGHT)
 window:show()
 
+camera = Camera:new() -- create a new camera
+Renderer:set_camera(camera) -- set the camera as default
+
 create_ui() -- can cause crash
 -- level
 --world = Level:new()
 --frame = 0
 
 -- play theme song
---theme = Music:new("audio/guardia.ogg")
---theme:set_volume(1)
---theme:play()
+--[[
+theme = Music:new("audio/guardia.ogg")
+theme:set_volume(1)
+theme:play()
+]]--
 --Script.save("potion")
 while window:is_open() do
 -- ======================
     window:set_viewport(window:get_client_width(), window:get_client_height())
     window:clear(32, 32, 32)
 -- ======================
+-- im getting the wrong dialogue_box.label.rect / position for some reason -- only updated in draw call
+--[[
+print("label rect: ", dialogue_box.label:get_rect())
+print("label1 rect: ", dialogue_box.label1:get_x(), dialogue_box.label1:get_y(), dialogue_box.label1:get_width(), dialogue_box.label1:get_height())--dialogue_box.label1:get_rect())
+print("label2 rect: ", dialogue_box.label2:get_rect())
+print("label3 rect: ", dialogue_box.label3:get_rect())
+print("label relative_pos: ", dialogue_box.label:get_relative_position())
+print("label1 relative_pos: ", dialogue_box.label1:get_relative_position())
+print("label2 relative_pos: ", dialogue_box.label2:get_relative_position())
+print("label3 relative_pos: ", dialogue_box.label3:get_relative_position())
+]]--
+-- ======================
     -- draw world
 	-- lock sprite within window bounds
 	-- locks all sprites within window bounds
     Sprite:lock_all(window:get_size())--Sprite.lock(player, 1280, 720)
 	-- draw item
+    sword:look_at_mouse()
     Item:draw_all()
 	-- draw objects (static)
     -- draw_monster
@@ -68,10 +86,17 @@ while window:is_open() do
 	player:draw()
 	-- draw and update ui
     update_ui() -- can cause crash
-    --fps_counter() -- can cause crash
+    fps_counter() -- can cause crash
 -- ======================
     if window:is_focused() then
         if theme then if theme:is_paused() then theme:play() end end  
+        -- camera
+        if Keyboard:is_pressed(KEY_Z) then
+            camera:zoom_in(1)
+        end
+        if Keyboard:is_pressed(KEY_X) then
+            camera:zoom_out(1)
+        end        
     end
     if not window:is_focused() then
         if theme then theme:pause() end

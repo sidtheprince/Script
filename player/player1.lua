@@ -37,8 +37,8 @@ if dokun then
 		player:set_quest( quest )
 	end
 ]]--
-    Sprite.set_size(player, 64, 64)	
-end	
+    Sprite.set_size(player, 64, 64)
+end
 end
 
 -- while player is being drawn in loop
@@ -53,7 +53,7 @@ if dokun then
 	local direction_x, direction_y = target_x - player_x, target_y - player_y
 	-- normalize direction
 	local length = math.sqrt(direction_x * direction_x + direction_y * direction_y)
-	local direction_x_norm, direction_y_norm 
+	local direction_x_norm, direction_y_norm
 	if length ~= 0 then
 	    direction_x_norm, direction_y_norm = direction_x /  length, direction_y / length
 	end
@@ -63,34 +63,34 @@ if dokun then
 	    target_x, target_y = Mouse:get_position(window)
 		move = true
 	end
-    local distance = Math.distance(target_x, target_y, player_x, player_y)	
+    local distance = Math.distance(target_x, target_y, player_x, player_y)
 	if distance > 3 and move then
 	   Sprite.translate(self, 1 * 0.5, 0)
 	   --Sprite.translate(self, 0, 1 * 5)
 	   else move = false
-	end 
+	end
 	]]--
 	-----------------------------------
 	if window:is_focused() then
 	    local speed = 10
 	    if Keyboard:is_pressed("up", 0) then
-	        Sprite.translate(self, 0, -speed)
+	         if not dialogue_box:is_visible() then Sprite.translate(self, 0, -speed) end -- prevent player from moving while dialogue_box is open-- player cannot move while dialogue box is open (or while talking to NPC)
 	    end
 	    if Keyboard:is_pressed("down", 0) then
-	        Sprite.translate(self, 0, speed)
+	        if not dialogue_box:is_visible() then Sprite.translate(self, 0, speed) end -- player cannot move while dialogue box is open (or while talking to NPC)
 	    end
 	    if Keyboard:is_pressed("left", 0) then
-	        Sprite.translate(self, -speed, 0)
+	        if not dialogue_box:is_visible() then Sprite.translate(self, -speed, 0) end -- player cannot move while dialogue box is open (or while talking to NPC)
 	    end
 	    if Keyboard:is_pressed("right", 0) then
-	        Sprite.translate(self, speed, 0)
-	    end	
-	end	
+	        if not dialogue_box:is_visible() then Sprite.translate(self, speed, 0) end -- player cannot move while dialogue box is open (or while talking to NPC)
+	    end
+	end
 		-- check experience points
 		self:level_up()
 		-- draw the player
         Sprite.draw(self, frame)
-	end	
+	end
 	start_time = os.clock()
     -- collision with other entities
 	local player_width, player_height   = Sprite.get_size(player)
@@ -99,34 +99,34 @@ if dokun then
 	if((monster_x < player_x + player_width) and (player_x < monster_x) and (monster_y < player_y + player_height) and (player_y < monster_y)) then
 	    --player:set_health(player:get_health() - 0.001 * os.clock()-start_time)
 		--player:set_exp(player:get_exp() +   0.01 * os.clock()-start_time)
-		--player:set_health(0) 
+		--player:set_health(0)
 		-- change to dead texture
 		--player_dead = Texture:new("player/naked_dead.png")
-		--Sprite.set_texture(player, player_dead)		
-	end 
+		--Sprite.set_texture(player, player_dead)
+	end
 	----
 	if is_monster(player:get_target()) then
 	   -- follow target
-	   
+
 	end
 	if window:is_focused() then
         -- initiate attack on monster
         if Keyboard:is_pressed(KEY_SPACE) == true then
-            for m=1, Monster.factory:get_size() do 
+            for m=1, Monster.factory:get_size() do
                 monst = Monster.factory:get_object(m)
                 if is_monster(monst) then
                     if monst:detect(player, 20) then player:hit(monst) end
                 end
             end
-		end  
-	end		
+		end
+	end
     player:on_basic_attack()
 	player:on_item_use()
 	player:on_item_equipped()
 		-- if player dies, set visiblity off
 	player:on_dead()
 	-- if player dies, restore health, set respawn point, and set visible
-	player:on_respawn() 
+	player:on_respawn()
 end
 end
 
@@ -144,17 +144,17 @@ if dokun then
             if one_percent > 0 then
 			    self:set_exp(current_exp - one_percent)
                 print("You have lost "..one_percent.." exp")
-	        end        
-	        -- wait 2 secs			
+	        end
+	        -- wait 2 secs
 			sleep(2)
 			-- set visible to false
-			Sprite.set_visible(player, false) 
+			Sprite.set_visible(player, false)
 	end
 	end
-end	
+end
 end
 
-function player:on_basic_attack()	
+function player:on_basic_attack()
     if player:has_target() then player:hit(self:get_target()) end --player will attack its target with weapon hitpower
 end
 function player:on_item_equipped()
@@ -169,16 +169,16 @@ function player:on_item_equipped()
 	if (string.find(item:get_type(), nocase("Equipment")) and player:is_equipped(item)) then
 	    -- if item is a weapon
 		if string.find(item:get_subtype(), nocase("Weapon")) or string.find( item:get_subtype(), nocase("Smasher") ) or string.find(item:get_subtype(), nocase("Blaster")) or string.find(item:get_subtype(), nocase("Explosive")) then
-if dokun then		    
+if dokun then
             local player_x, player_y            = Sprite.get_position(self)
 			local player_width, player_height   = Sprite.get_size(self)
 			Sprite.set_position(item, player_x-10, player_y+10)
-end			
+end
 		end
 	end
 end
 
-function player:on_item_use() 
+function player:on_item_use()
 	-- USE ITEMS 0-9
 	if Keyboard:is_pressed(KEY_1) then
 	    local item = Bag:get_item_in_slot(1)
@@ -256,3 +256,22 @@ if dokun then
 	end
 end
 end
+
+
+--function player:on_npc_press(npc)----------------------------------- on clicking npc
+--[[
+	if not is_npc(npc) then return end
+    local self_width, self_height = Sprite.get_size(npc)
+	local self_x, self_y = Sprite.get_position(npc)
+	if self:detect( npc, 1120 ) then -- an NPC is around the block -- 5120×2880 = highest resolution
+	    if self.target then if not Mouse:is_over(self_x, self_y, self_width, self_height) and Mouse:is_pressed(1) then -- you click elsewhere
+	        --self:set_target(nil) print("Target lost") return
+	        end
+	    end
+        if not self.target then if Mouse:is_over(self_x, self_y, self_width, self_height) and Mouse:is_pressed(1) then
+	        self:set_target(npc) print(npc:get_name().." is your target") return end
+	    end -- you click on the npc
+	    if self:has_target() then player:follow(npc) end
+	end
+]]--
+--end

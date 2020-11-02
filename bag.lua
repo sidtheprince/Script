@@ -71,7 +71,7 @@ function Bag:insert( item, amount ) -- new!
 		end
 	end
 	if is_item(item) then
-		-- stackable -- stackable items such as potion, gold
+		-- stackable -- stackable items such as potion, sword, etc.
 		if item:is_stackable() then
 			-- original item
 			if not item:is_copy() then
@@ -92,7 +92,9 @@ function Bag:insert( item, amount ) -- new!
 					-- dokun graphical stuff ...
 					if dokun and bag_slots then
 						bag_slots[item:get_slot(self)]:get_label():set_string(tostring(item:get_quantity())) bag_slots[item:get_slot(self)]:get_label():show()--set quantity as bag_slots[item:get_slot(self)].label's string
-						if Sprite.get_texture(item):is_texture() then    bag_slots[item:get_slot(self)]:get_image():copy_texture(Sprite.get_texture(item)) end--if the item's texture_data is not nullptr, bag_slot will copy its texture
+						if Sprite.get_texture(item):is_texture() then    
+						   bag_slots[item:get_slot(self)]:get_image():copy_texture(Sprite.get_texture(item))
+						end--if the item's texture_data is not nullptr, bag_slot will copy its texture
 					end					
 					return true					
 				end
@@ -118,7 +120,9 @@ function Bag:insert( item, amount ) -- new!
 					-- dokun graphical stuff ...
 					if dokun and bag_slots then
 						bag_slots[parent:get_slot(self)]:get_label():set_string(tostring(parent:get_quantity())) bag_slots[parent:get_slot(self)]:get_label():show()--set quantity as bag_slots[parent:get_slot(self)].label's string
-						if Sprite.get_texture(parent):is_texture() then    bag_slots[parent:get_slot(self)]:get_image():copy_texture(Sprite.get_texture(parent)) end--if the item's texture_data is not nullptr, bag_slot will copy its texture
+						if Sprite.get_texture(parent):is_texture() then    
+						    bag_slots[parent:get_slot(self)]:get_image():copy_texture(Sprite.get_texture(parent))
+						end--if the item's texture_data is not nullptr, bag_slot will copy its texture
 					end
 					return true					
 			    end
@@ -139,7 +143,9 @@ function Bag:insert( item, amount ) -- new!
 				-- dokun graphical stuff ...
 				if dokun and bag_slots then
 					bag_slots[item:get_slot(self)]:get_label():set_string(tostring(item:get_quantity())) bag_slots[item:get_slot(self)]:get_label():show()--set quantity as bag_slots[item:get_slot(self)].label's string
-					if Sprite.get_texture(item):is_texture() then    bag_slots[item:get_slot(self)]:get_image():copy_texture(Sprite.get_texture(item)) end--if the item's texture_data is not nullptr, bag_slot will copy its texture
+					if Sprite.get_texture(item):is_texture() then    
+					   bag_slots[item:get_slot(self)]:get_image():copy_texture(Sprite.get_texture(item)) -- bag_slots image will copy the item's texture
+					end--if the item's texture_data is not nullptr, bag_slot will copy its texture
 				end
                 return true				
 			-- already in bag (non-stackable)

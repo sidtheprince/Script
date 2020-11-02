@@ -27,8 +27,8 @@ function potion:on_use(user)
 	    return
     end
     -- health is full
-    if user:get_health() == user:get_maximum_health() then
-        print("Your health is full.")
+    if user:get_health() >= user:get_maximum_health() then
+        print("Your health is full")
 		return 
     end
     -- health is not full

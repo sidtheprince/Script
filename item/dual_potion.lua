@@ -18,7 +18,13 @@ function dual_potion:on_use(user)
     -- potion is not valid item
     if not is_item(self) then return end
     -- potion is not in the bag
-    if not self:in_bag() then print(self:get_name().." is not in bag") return end    
+    if not self:in_bag() then print(self:get_name().." is not in bag") return end
+    -- health or mana is full
+    if user:get_health() >= user:get_maximum_health() and
+    user:get_mana() >= user:get_maximum_mana() then
+        print("Your health is full")
+        print("Your mana is full")
+    end        
     -- health or mana is not full
     if user:get_health() < user:get_maximum_health() or
     user:get_mana() < user:get_maximum_mana() then   
